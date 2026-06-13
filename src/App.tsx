@@ -1164,6 +1164,7 @@ function LessonForm({ title, teachers, days, students, initial, open, close, les
    ============================================================ */
 function ChatView({ data, student, me, academy, api }) {
   const [open, setOpen] = useState(null); const [cq, setCq] = useState("");
+  const [noticeCompose, setNoticeCompose] = useState(false); const [noticeOpen, setNoticeOpen] = useState(null);
   useEffect(() => { if (open) api.markThreadRead(open.key, me.id); }, [open && open.key]);
   const myBy = me.role === "parent" ? "parent" : me.role === "teacher" ? "teacher" : "director";
   const sName = sid => (data.students.find(s => s.id === sid) || {}).name || "";
@@ -1177,7 +1178,6 @@ function ChatView({ data, student, me, academy, api }) {
   else convs = [{ key: `${student.id}|pd`, with: "parent", studentId: student.id }, { key: `${student.id}|td`, with: "teacher", studentId: student.id }];
   const showStudentTag = me.role !== "parent" || (me.studentIds || []).length > 1;
   if (open) { const msgs = data.chats[open.key] || []; return <Thread title={`${labelFor(open.with, open.studentId)}${showStudentTag ? ` · ${sName(open.studentId)}` : ""}`} color={colorFor(open.with, open.studentId)} msgs={msgs} myBy={myBy} myId={me.id} onBack={() => setOpen(null)} onSend={(t) => api.sendMsg(open.key, myBy, t)} />; }
-  const [noticeCompose, setNoticeCompose] = useState(false); const [noticeOpen, setNoticeOpen] = useState(null);
   const audOk = (an) => me.role === "admin" || (an.audience === "everyone") || (an.audience === "parents" && me.role === "parent") || (an.audience === "teachers" && me.role === "teacher");
   const notices = (data.announcements || []).filter(a => a.academyId === me.academyId && audOk(a));
   const audLabel = { parents: "학부모", teachers: "강사", everyone: "전체" };
