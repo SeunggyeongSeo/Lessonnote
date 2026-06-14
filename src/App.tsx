@@ -22,6 +22,10 @@ const uid = (p = "x") => p + Math.random().toString(36).slice(2, 8);
 const genCode = () => "LN-" + Math.random().toString(36).slice(2, 7).toUpperCase();
 const gen6 = () => String(Math.floor(100000 + Math.random() * 900000));
 const hhmm = () => { const d = new Date(); return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`; };
+const WD = ["일", "월", "화", "수", "목", "금", "토"];
+const fmtClock = (ts) => { const d = new Date(ts); let h = d.getHours(); const ap = h < 12 ? "오전" : "오후"; h = h % 12 || 12; return `${ap} ${h}:${String(d.getMinutes()).padStart(2, "0")}`; };
+const fmtDay = (ts) => { const d = new Date(ts); const now = new Date(); const yr = d.getFullYear() !== now.getFullYear() ? `${d.getFullYear()}년 ` : ""; return `${yr}${d.getMonth() + 1}월 ${d.getDate()}일 (${WD[d.getDay()]})`; };
+const sameDay = (a, b) => a && b && new Date(a).toDateString() === new Date(b).toDateString();
 const ym = () => { const d = new Date(); return `${d.getFullYear()}년 ${d.getMonth() + 1}월`; };
 const ymKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 const ymLabel = (k) => { const [y, m] = k.split("-"); return `${y}년 ${parseInt(m)}월`; };
@@ -536,7 +540,7 @@ function DiaryView({ data, student, canEdit, defaultTeacherId, me, api }) {
         <div key={en.id} className="dc-card dc-enter" style={{ padding: 16, marginBottom: 16, animationDelay: `${Math.min(i, 6) * 0.05}s` }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
             <div style={{ width: 38, height: 38, borderRadius: 13, background: "linear-gradient(140deg,#6A4C7A,#4D3759)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>{isAdminAuthor ? <Shield size={17} /> : <Music2 size={17} />}</div>
-            <div style={{ flex: 1 }}><div style={{ fontSize: 13.5, fontWeight: 700 }}>{authorLabel}</div><div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>{en.date}</div></div>
+            <div style={{ flex: 1 }}><div style={{ fontSize: 13.5, fontWeight: 700 }}>{authorLabel}</div><div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>{en.ts ? `${fmtDay(en.ts)} ${fmtClock(en.ts)}` : en.date}</div></div>
             {canEdit ? <button className="dc-btn" onClick={() => api.confirm({ title: "알림장을 삭제할까요?", message: en.title, onConfirm: () => api.deleteDiary(en.id) })} style={{ background: "#FBE0DC", borderRadius: 10, padding: 7 }}><Trash2 size={15} color="#C45A48" /></button> : <Tag bg="#F3E2D3" color="#B5683F">알림장</Tag>}
           </div>
           <div className="dc-serif" style={{ fontSize: 16, fontWeight: 700, marginBottom: 7, lineHeight: 1.4 }}>{en.title}</div>
@@ -640,7 +644,7 @@ function ComposeDiary({ student, defaultTeacherId, me, initialText, initialTitle
     if (!title.trim() || anyUploading) return;
     const media = mediaList.filter(m => m.url && !m.error).map(m => ({ t: m.t, url: m.url, name: m.name, ...(m.path ? { path: m.path } : {}) }));
     const dd = new Date();
-    onSave({ id: uid("d"), studentId: student.id, teacherId: defaultTeacherId, authorRole: me && me.role, authorName: me && me.name, authorId: me && me.id, date: `${dd.getMonth() + 1}월 ${dd.getDate()}일`, title, text, media, likes: 0, liked: false, commentList: [] });
+    onSave({ id: uid("d"), studentId: student.id, teacherId: defaultTeacherId, authorRole: me && me.role, authorName: me && me.name, authorId: me && me.id, date: `${dd.getMonth() + 1}월 ${dd.getDate()}일`, ts: dd.getTime(), title, text, media, likes: 0, liked: false, commentList: [] });
   };
   const photos = mediaList.filter(m => m.t === "photo").length, vids = mediaList.filter(m => m.t === "video").length;
   const attachBtn = { flex: 1, padding: "13px 0", borderRadius: 14, background: "#F8F1E6", color: "var(--plum)", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, border: "1.5px dashed #D8B79E" };
@@ -1165,19 +1169,25 @@ function LessonForm({ title, teachers, days, students, initial, open, close, les
 function ChatView({ data, student, me, academy, api }) {
   const [open, setOpen] = useState(null); const [cq, setCq] = useState("");
   const [noticeCompose, setNoticeCompose] = useState(false); const [noticeOpen, setNoticeOpen] = useState(null);
+  const [noticeEdit, setNoticeEdit] = useState(null); const [noticeListOpen, setNoticeListOpen] = useState(false);
+  const [newChatOpen, setNewChatOpen] = useState(false); const [ncq, setNcq] = useState("");
   useEffect(() => { if (open) api.markThreadRead(open.key, me.id); }, [open && open.key]);
   const myBy = me.role === "parent" ? "parent" : me.role === "teacher" ? "teacher" : "director";
   const sName = sid => (data.students.find(s => s.id === sid) || {}).name || "";
+  const tById = tid => data.teachers.find(t => t.id === tid) || { name: "강사", color: "#6A4C7A" };
   const tOf = sid => { const st = data.students.find(s => s.id === sid); return data.teachers.find(t => t.id === (st || {}).teacherId) || { name: "강사", color: "#6A4C7A" }; };
-  const labelFor = (withRole, sid) => withRole === "parent" ? `${sName(sid)} 학부모` : withRole === "teacher" ? `${tOf(sid).name} 선생님` : `${academy.directorName} 원장님`;
-  const colorFor = (withRole, sid) => withRole === "teacher" ? tOf(sid).color : withRole === "director" ? "#4D3759" : "#C2548A";
+  const labelFor = (withRole, sid, tid) => withRole === "parent" ? `${sName(sid)} 학부모` : withRole === "teacher" ? `${(tid ? tById(tid) : tOf(sid)).name} 선생님` : `${academy.directorName} 원장님`;
+  const colorFor = (withRole, sid, tid) => withRole === "teacher" ? (tid ? tById(tid) : tOf(sid)).color : withRole === "director" ? "#4D3759" : "#C2548A";
   const unreadCount = (key) => (data.chats[key] || []).filter(m => m.by !== myBy && !(m.readBy || []).includes(me.id)).length;
-  let convs = [];
+  const hasMsgs = (key) => (data.chats[key] || []).length > 0;
+  const acStudents = data.students.filter(s => s.academyId === me.academyId);
+  const acTeachers = data.teachers.filter(t => t.academyId === me.academyId);
+  let convs = [], pickList = null;
   if (me.role === "parent") { const kids = data.students.filter(s => (me.studentIds || []).includes(s.id)); const ks = kids.length ? kids : [student]; convs = ks.flatMap(s => [{ key: `${s.id}|tp`, with: "teacher", studentId: s.id }, { key: `${s.id}|pd`, with: "director", studentId: s.id }]); }
-  else if (me.role === "teacher") { const myStudents = data.students.filter(s => s.teacherId === me.teacherId); convs = myStudents.map(s => ({ key: `${s.id}|tp`, with: "parent", studentId: s.id })); convs.push({ key: `${student.id}|td`, with: "director", studentId: student.id }); }
-  else convs = [{ key: `${student.id}|pd`, with: "parent", studentId: student.id }, { key: `${student.id}|td`, with: "teacher", studentId: student.id }];
+  else if (me.role === "teacher") { const myStudents = data.students.filter(s => s.teacherId === me.teacherId); convs = myStudents.map(s => ({ key: `${s.id}|tp`, with: "parent", studentId: s.id })); convs.push({ key: `dt:${me.teacherId}`, with: "director" }); }
+  else { pickList = [...acTeachers.map(t => ({ key: `dt:${t.id}`, with: "teacher", teacherId: t.id })), ...acStudents.map(s => ({ key: `${s.id}|pd`, with: "parent", studentId: s.id }))]; convs = pickList.filter(c => hasMsgs(c.key)); }
   const showStudentTag = me.role !== "parent" || (me.studentIds || []).length > 1;
-  if (open) { const msgs = data.chats[open.key] || []; return <Thread title={`${labelFor(open.with, open.studentId)}${showStudentTag ? ` · ${sName(open.studentId)}` : ""}`} color={colorFor(open.with, open.studentId)} msgs={msgs} myBy={myBy} myId={me.id} onBack={() => setOpen(null)} onSend={(t) => api.sendMsg(open.key, myBy, t)} />; }
+  if (open) { const msgs = data.chats[open.key] || []; return <Thread title={`${labelFor(open.with, open.studentId, open.teacherId)}${showStudentTag && open.studentId ? ` · ${sName(open.studentId)}` : ""}`} color={colorFor(open.with, open.studentId, open.teacherId)} msgs={msgs} myBy={myBy} myId={me.id} onBack={() => setOpen(null)} onSend={(t) => api.sendMsg(open.key, myBy, t)} onEdit={(i, t) => api.editMsg(open.key, i, t, me.id)} />; }
   const audOk = (an) => me.role === "admin" || (an.audience === "everyone") || (an.audience === "parents" && me.role === "parent") || (an.audience === "teachers" && me.role === "teacher");
   const notices = (data.announcements || []).filter(a => a.academyId === me.academyId && audOk(a));
   const audLabel = { parents: "학부모", teachers: "강사", everyone: "전체" };
@@ -1193,39 +1203,69 @@ function ChatView({ data, student, me, academy, api }) {
             <ChevronRight size={16} color="var(--ink-soft)" />
           </button>
         ))}
-        {notices.length > 4 && <div style={{ fontSize: 11.5, color: "var(--ink-soft)", textAlign: "center", marginTop: 4 }}>외 {notices.length - 4}건</div>}
+        {notices.length > 4 && <button className="dc-btn" onClick={() => setNoticeListOpen(true)} style={{ width: "100%", textAlign: "center", background: "#F0E7D9", color: "var(--plum)", borderRadius: 10, padding: "8px 0", fontSize: 12, fontWeight: 700, marginTop: 4 }}>공지 전체 보기 ({notices.length}건)</button>}
       </div>
-      {convs.length > 8 && <SearchBox value={cq} onChange={setCq} placeholder="학생 이름으로 대화 찾기" />}
-      {[...convs].filter(c => !cq.trim() || sName(c.studentId).includes(cq.trim()) || labelFor(c.with, c.studentId).includes(cq.trim())).sort((a, b) => { const ua = unreadCount(a.key), ub = unreadCount(b.key); return ((ub > 0) - (ua > 0)) || (ub - ua); }).map((c) => { const msgs = data.chats[c.key] || []; const last = msgs[msgs.length - 1]; const uc = unreadCount(c.key); return (<button key={c.key} className="dc-card dc-btn" onClick={() => setOpen(c)} style={{ width: "100%", padding: 15, marginBottom: 11, display: "flex", alignItems: "center", gap: 13, textAlign: "left" }}><div style={{ width: 46, height: 46, borderRadius: 16, background: `linear-gradient(140deg,${colorFor(c.with, c.studentId)},${colorFor(c.with, c.studentId)}bb)`, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{c.with === "director" ? <Shield size={20} /> : c.with === "teacher" ? <Music2 size={20} /> : <User size={20} />}</div><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 700 }}>{labelFor(c.with, c.studentId)}{showStudentTag ? <span style={{ fontSize: 11.5, color: "var(--ink-soft)", fontWeight: 400 }}> · {sName(c.studentId)}</span> : ""}</div><div style={{ fontSize: 12, color: uc ? "var(--ink)" : "var(--ink-soft)", fontWeight: uc ? 700 : 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{last ? `${last.by === myBy ? "나: " : ""}${last.text}` : "대화를 시작해보세요"}</div></div>{uc > 0 ? <span style={{ minWidth: 20, height: 20, padding: "0 6px", borderRadius: 999, background: "var(--coral-deep)", color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{uc}</span> : <ChevronRight size={18} color="var(--ink-soft)" />}</button>); })}
+      {me.role === "admin" && <button className="dc-btn" onClick={() => { setNcq(""); setNewChatOpen(true); }} style={{ width: "100%", padding: 13, borderRadius: 14, background: "linear-gradient(140deg,#6A4C7A,#4D3759)", color: "#fff", fontSize: 13.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, marginBottom: 12 }}><Plus size={16} /> 새 채팅 (학부모·강사 찾기)</button>}
+      {convs.length > 8 && <SearchBox value={cq} onChange={setCq} placeholder="이름으로 대화 찾기" />}
+      {convs.length === 0 && <Empty msg={me.role === "admin" ? "아직 시작한 대화가 없어요. ‘새 채팅’으로 학부모·강사와 대화를 시작하세요." : "아직 대화가 없어요."} />}
+      {[...convs].filter(c => !cq.trim() || sName(c.studentId).includes(cq.trim()) || labelFor(c.with, c.studentId, c.teacherId).includes(cq.trim())).sort((a, b) => { const ua = unreadCount(a.key), ub = unreadCount(b.key); return ((ub > 0) - (ua > 0)) || (ub - ua); }).map((c) => { const msgs = data.chats[c.key] || []; const last = msgs[msgs.length - 1]; const uc = unreadCount(c.key); return (<button key={c.key} className="dc-card dc-btn" onClick={() => setOpen(c)} style={{ width: "100%", padding: 15, marginBottom: 11, display: "flex", alignItems: "center", gap: 13, textAlign: "left" }}><div style={{ width: 46, height: 46, borderRadius: 16, background: `linear-gradient(140deg,${colorFor(c.with, c.studentId, c.teacherId)},${colorFor(c.with, c.studentId, c.teacherId)}bb)`, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{c.with === "director" ? <Shield size={20} /> : c.with === "teacher" ? <Music2 size={20} /> : <User size={20} />}</div><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 700 }}>{labelFor(c.with, c.studentId, c.teacherId)}{showStudentTag && c.studentId ? <span style={{ fontSize: 11.5, color: "var(--ink-soft)", fontWeight: 400 }}> · {sName(c.studentId)}</span> : ""}</div><div style={{ fontSize: 12, color: uc ? "var(--ink)" : "var(--ink-soft)", fontWeight: uc ? 700 : 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{last ? `${last.by === myBy ? "나: " : ""}${last.text}` : "대화를 시작해보세요"}</div></div>{uc > 0 ? <span style={{ minWidth: 20, height: 20, padding: "0 6px", borderRadius: 999, background: "var(--coral-deep)", color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{uc}</span> : <ChevronRight size={18} color="var(--ink-soft)" />}</button>); })}
       {noticeCompose && <NoticeCompose onSave={(v) => { api.addAnnouncement({ ...v, academyId: me.academyId, by: `${academy.directorName || "원장"} 원장` }); setNoticeCompose(false); }} onClose={() => setNoticeCompose(false)} />}
       {noticeOpen && (<Sheet title="공지사항" onClose={() => setNoticeOpen(null)}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}><Tag bg="#F3E2D3" color="#B5683F">{audLabel[noticeOpen.audience] || "전체"} 대상</Tag><span style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>{noticeOpen.date} {noticeOpen.time}</span></div>
         <div className="dc-serif" style={{ fontSize: 19, fontWeight: 700, marginBottom: 6 }}>{noticeOpen.title}</div>
         <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginBottom: 14 }}>{noticeOpen.by}</div>
-        <div style={{ fontSize: 14, lineHeight: 1.8, color: "#473f52", whiteSpace: "pre-wrap" }}>{noticeOpen.text}</div>
-        {me.role === "admin" && <button className="dc-btn" onClick={() => { const id = noticeOpen.id; api.confirm({ title: "공지를 삭제할까요?", message: noticeOpen.title, onConfirm: () => api.deleteAnnouncement(id) }); setNoticeOpen(null); }} style={{ marginTop: 20, width: "100%", padding: 13, borderRadius: 14, background: "#FBE0DC", color: "#C45A48", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Trash2 size={15} /> 공지 삭제</button>}
+        <div style={{ fontSize: 14, lineHeight: 1.8, color: "#473f52", whiteSpace: "pre-wrap" }}>{noticeOpen.text}{noticeOpen.edited ? <span style={{ fontSize: 11, color: "var(--ink-soft)" }}> (수정됨)</span> : ""}</div>
+        {me.role === "admin" && <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
+          <button className="dc-btn" onClick={() => { setNoticeEdit(noticeOpen); setNoticeOpen(null); }} style={{ flex: 1, padding: 13, borderRadius: 14, background: "#F0E7D9", color: "var(--plum)", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Pencil size={15} /> 수정</button>
+          <button className="dc-btn" onClick={() => { const id = noticeOpen.id; api.confirm({ title: "공지를 삭제할까요?", message: noticeOpen.title, onConfirm: () => api.deleteAnnouncement(id) }); setNoticeOpen(null); }} style={{ flex: 1, padding: 13, borderRadius: 14, background: "#FBE0DC", color: "#C45A48", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Trash2 size={15} /> 삭제</button>
+        </div>}
+      </Sheet>)}
+      {noticeEdit && <NoticeCompose initial={noticeEdit} onSave={(v) => { api.editAnnouncement(noticeEdit.id, v); setNoticeEdit(null); }} onClose={() => setNoticeEdit(null)} />}
+      {noticeListOpen && (<Sheet title={`공지 전체 (${notices.length}건)`} onClose={() => setNoticeListOpen(null)}>
+        {notices.length === 0 && <Empty msg="등록된 공지가 없어요." />}
+        {notices.map(an => (<button key={an.id} className="dc-btn" onClick={() => { setNoticeListOpen(false); setNoticeOpen(an); }} style={{ width: "100%", textAlign: "left", background: "#FAF3E8", borderRadius: 12, padding: "11px 13px", marginBottom: 8, display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 30, height: 30, borderRadius: 9, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>📢</div>
+          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 13, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{an.title}</div><div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{an.date} · {audLabel[an.audience] || "전체"} 대상</div></div>
+          <ChevronRight size={16} color="var(--ink-soft)" />
+        </button>))}
+      </Sheet>)}
+      {newChatOpen && (<Sheet title="새 채팅" onClose={() => setNewChatOpen(false)}>
+        <SearchBox value={ncq} onChange={setNcq} placeholder="학부모·강사 이름 검색" />
+        {(pickList || []).filter(c => { const lbl = labelFor(c.with, c.studentId, c.teacherId); const sn = sName(c.studentId); return !ncq.trim() || lbl.includes(ncq.trim()) || (sn && sn.includes(ncq.trim())); }).map(c => { const active = hasMsgs(c.key); return (
+          <button key={c.key} className="dc-btn" onClick={() => { setNewChatOpen(false); setOpen(c); }} style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: 12, padding: "11px 12px", marginBottom: 8, borderRadius: 14, background: "#fff", border: "1px solid var(--line)" }}>
+            <div style={{ width: 40, height: 40, borderRadius: 13, background: `linear-gradient(140deg,${colorFor(c.with, c.studentId, c.teacherId)},${colorFor(c.with, c.studentId, c.teacherId)}bb)`, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{c.with === "teacher" ? <Music2 size={18} /> : <User size={18} />}</div>
+            <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 13.5, fontWeight: 700 }}>{labelFor(c.with, c.studentId, c.teacherId)}</div><div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>{c.with === "teacher" ? "강사" : "학부모"}{active ? " · 대화중" : ""}</div></div>
+            <ChevronRight size={16} color="var(--ink-soft)" />
+          </button>); })}
       </Sheet>)}
     </div>
   );
 }
-function NoticeCompose({ onSave, onClose }) {
-  const [audience, setAud] = useState("everyone"); const [title, setTitle] = useState(""); const [text, setText] = useState("");
+function NoticeCompose({ onSave, onClose, initial }) {
+  const [audience, setAud] = useState(initial?.audience || "everyone"); const [title, setTitle] = useState(initial?.title || ""); const [text, setText] = useState(initial?.text || "");
   const AUDS = [["everyone", "전체"], ["parents", "학부모"], ["teachers", "강사"]];
-  return (<Sheet title="공지 작성" onClose={onClose}>
+  return (<Sheet title={initial ? "공지 수정" : "공지 작성"} onClose={onClose}>
     <label className="dc-label">받는 대상</label>
     <div style={{ display: "flex", gap: 7, marginBottom: 14 }}>{AUDS.map(([k, l]) => <button key={k} className="dc-btn" onClick={() => setAud(k)} style={{ flex: 1, padding: "10px 0", borderRadius: 12, background: audience === k ? "linear-gradient(140deg,#6A4C7A,#4D3759)" : "#fff", color: audience === k ? "#fff" : "var(--ink)", border: "1px solid var(--line)", fontSize: 13, fontWeight: audience === k ? 700 : 400 }}>{l}</button>)}</div>
     <Field label="제목" value={title} onChange={setTitle} />
     <label className="dc-label">내용</label>
     <textarea className="dc-input" value={text} onChange={e => setText(e.target.value)} placeholder="공지 내용을 입력하세요" style={{ minHeight: 120, resize: "none", marginBottom: 18 }} />
-    <PrimaryBtn onClick={() => { if (!title.trim() || !text.trim()) return; onSave({ audience, title: title.trim(), text: text.trim() }); }}><Bell size={16} /> 공지 발송</PrimaryBtn>
+    <PrimaryBtn onClick={() => { if (!title.trim() || !text.trim()) return; onSave({ audience, title: title.trim(), text: text.trim() }); }}>{initial ? <><Pencil size={16} /> 공지 수정</> : <><Bell size={16} /> 공지 발송</>}</PrimaryBtn>
   </Sheet>);
 }
-function Thread({ title, color, msgs, myBy, myId, onBack, onSend }) {
+function Thread({ title, color, msgs, myBy, myId, onBack, onSend, onEdit }) {
   const [val, setVal] = useState(""); const endRef = useRef(null);
+  const [editIdx, setEditIdx] = useState(null); const [editVal, setEditVal] = useState("");
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
   const send = () => { const t = val.trim(); if (!t) return; onSend(t); setVal(""); };
   const readByOther = (m) => (m.readBy || []).some(x => x !== myId);
-  return (<div style={{ display: "flex", flexDirection: "column", height: "100%" }}><div style={{ display: "flex", alignItems: "center", gap: 10, paddingBottom: 14, borderBottom: "1px solid var(--line)" }}><button className="dc-btn" onClick={onBack} style={{ background: "none", padding: 4 }}><ChevronLeft size={22} color="var(--plum)" /></button><div style={{ width: 40, height: 40, borderRadius: 14, background: `linear-gradient(140deg,${color},${color}bb)`, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}><User size={18} /></div><div style={{ flex: 1 }}><div className="dc-serif" style={{ fontSize: 15.5, fontWeight: 700 }}>{title}</div><div style={{ fontSize: 11, color: "var(--mint)", display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--mint)" }} /> 온라인</div></div></div><div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 11, padding: "14px 2px" }}><div style={{ textAlign: "center", fontSize: 11, color: "var(--ink-soft)" }}>대화 내용은 안전하게 보관됩니다</div>{msgs.map((m, i) => { const mine = m.by === myBy; return (<div key={i} style={{ display: "flex", justifyContent: mine ? "flex-end" : "flex-start", alignItems: "flex-end", gap: 7 }}>{!mine && <div style={{ width: 26, height: 26, borderRadius: 9, background: color, color: "#fff", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10 }}>{BY_LABEL[m.by][0]}</div>}<div><div className={"dc-bubble " + (mine ? "me" : "them")}>{m.text}</div><div style={{ fontSize: 10, color: "var(--ink-soft)", marginTop: 3, textAlign: mine ? "right" : "left", display: "flex", gap: 4, justifyContent: mine ? "flex-end" : "flex-start", alignItems: "center" }}>{mine && (readByOther(m) ? <span style={{ color: "var(--mint)", display: "inline-flex", alignItems: "center", gap: 2 }}><CheckCheck size={12} /> 읽음</span> : <span style={{ display: "inline-flex", alignItems: "center", gap: 2 }}><Check size={12} /> 전송</span>)}{m.time}</div></div></div>); })}<div ref={endRef} /></div><div style={{ display: "flex", gap: 8, alignItems: "center", paddingTop: 10 }}><input value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === "Enter" && send()} placeholder="메시지를 입력하세요…" style={{ flex: 1, border: "1px solid var(--line)", background: "#fff", borderRadius: 18, padding: "12px 16px", fontSize: 13.5, fontFamily: "inherit", outline: "none" }} /><button className="dc-btn" onClick={send} style={{ width: 46, height: 46, borderRadius: 16, background: "linear-gradient(140deg,#6A4C7A,#4D3759)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Send size={18} /></button></div></div>);
+  const startEdit = (i, m) => { setEditIdx(i); setEditVal(m.text); };
+  const saveEdit = (i) => { const t = editVal.trim(); if (t && onEdit) onEdit(i, t); setEditIdx(null); setEditVal(""); };
+  return (<div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 10, paddingBottom: 14, borderBottom: "1px solid var(--line)", flexShrink: 0 }}><button className="dc-btn" onClick={onBack} style={{ background: "none", padding: 4 }}><ChevronLeft size={22} color="var(--plum)" /></button><div style={{ width: 40, height: 40, borderRadius: 14, background: `linear-gradient(140deg,${color},${color}bb)`, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}><User size={18} /></div><div style={{ flex: 1 }}><div className="dc-serif" style={{ fontSize: 15.5, fontWeight: 700 }}>{title}</div><div style={{ fontSize: 11, color: "var(--mint)", display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--mint)" }} /> 온라인</div></div></div>
+    <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: 11, padding: "14px 2px" }}><div style={{ textAlign: "center", fontSize: 11, color: "var(--ink-soft)" }}>대화 내용은 안전하게 보관됩니다</div>{msgs.map((m, i) => { const mine = m.by === myBy; const editable = mine && !readByOther(m) && !!onEdit; const editing = editIdx === i; const showDay = m.ts && !sameDay(m.ts, (msgs[i - 1] || {}).ts); return (<React.Fragment key={i}>{showDay && <div style={{ textAlign: "center", margin: "2px 0 4px" }}><span style={{ fontSize: 10.5, color: "var(--ink-soft)", background: "#F0E7D9", borderRadius: 999, padding: "3px 12px" }}>{fmtDay(m.ts)}</span></div>}<div style={{ display: "flex", justifyContent: mine ? "flex-end" : "flex-start", alignItems: "flex-end", gap: 7 }}>{!mine && <div style={{ width: 26, height: 26, borderRadius: 9, background: color, color: "#fff", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10 }}>{BY_LABEL[m.by][0]}</div>}<div style={{ maxWidth: "82%" }}>{editing ? (<div style={{ display: "flex", gap: 5, alignItems: "center" }}><input value={editVal} autoFocus onChange={e => setEditVal(e.target.value)} onKeyDown={e => { if (e.key === "Enter") saveEdit(i); if (e.key === "Escape") setEditIdx(null); }} style={{ border: "1px solid var(--plum)", borderRadius: 12, padding: "8px 11px", fontSize: 13.5, fontFamily: "inherit", outline: "none", minWidth: 120 }} /><button className="dc-btn" onClick={() => saveEdit(i)} style={{ background: "var(--plum)", color: "#fff", borderRadius: 10, padding: "0 11px", height: 34, fontSize: 12.5 }}>저장</button><button className="dc-btn" onClick={() => setEditIdx(null)} style={{ background: "#EFE6D8", color: "var(--ink-soft)", borderRadius: 10, padding: "0 9px", height: 34, fontSize: 12.5 }}>취소</button></div>) : (<div className={"dc-bubble " + (mine ? "me" : "them")} onClick={editable ? () => startEdit(i, m) : undefined} style={{ cursor: editable ? "pointer" : "default" }}>{m.text}</div>)}{!editing && <div style={{ fontSize: 10, color: "var(--ink-soft)", marginTop: 3, textAlign: mine ? "right" : "left", display: "flex", gap: 4, justifyContent: mine ? "flex-end" : "flex-start", alignItems: "center" }}>{mine && (readByOther(m) ? <span style={{ color: "var(--mint)", display: "inline-flex", alignItems: "center", gap: 2 }}><CheckCheck size={12} /> 읽음</span> : <span style={{ display: "inline-flex", alignItems: "center", gap: 2 }}><Check size={12} /> 전송</span>)}{m.edited && <span style={{ opacity: .7 }}>· 수정됨</span>}<span>{m.ts ? fmtClock(m.ts) : m.time}</span>{editable && <button className="dc-btn" onClick={() => startEdit(i, m)} style={{ background: "none", padding: "0 0 0 3px", color: "var(--plum)", display: "inline-flex", alignItems: "center" }}><Pencil size={11} /></button>}</div>}</div></div></React.Fragment>); })}<div ref={endRef} /></div>
+    <div style={{ display: "flex", gap: 8, alignItems: "center", paddingTop: 10, flexShrink: 0 }}><input value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === "Enter" && send()} onFocus={() => setTimeout(() => endRef.current?.scrollIntoView({ block: "end" }), 250)} placeholder="메시지를 입력하세요…" style={{ flex: 1, border: "1px solid var(--line)", background: "#fff", borderRadius: 18, padding: "12px 16px", fontSize: 13.5, fontFamily: "inherit", outline: "none" }} /><button className="dc-btn" onClick={send} style={{ width: 46, height: 46, borderRadius: 16, background: "linear-gradient(140deg,#6A4C7A,#4D3759)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Send size={18} /></button></div>
+  </div>);
 }
 
 /* ============================================================
@@ -1747,10 +1787,11 @@ export default function App() {
       const an = { id: uid("an"), academyId, by, audience, title, text, date: `${new Date().getMonth() + 1}월 ${new Date().getDate()}일`, time: hhmm() };
       d.announcements.unshift(an);
       const kind = audience === "parents" ? "allParents" : audience === "teachers" ? "allTeachers" : "everyone";
-      d.notifications.unshift({ id: uid("n"), academyId, aud: { kind }, type: "notice", text: `📢 공지 · ${title.slice(0, 24)}`, time: hhmm(), readBy: [] });
+      d.notifications.unshift({ id: uid("n"), academyId, aud: { kind }, type: "notice", refId: an.id, text: `📢 공지 · ${title.slice(0, 24)}`, time: hhmm(), readBy: [] });
       return d;
     }),
-    deleteAnnouncement: (id) => D(d => { d.announcements = d.announcements.filter(a => a.id !== id); return d; }),
+    editAnnouncement: (id, { audience, title, text }) => D(d => { const a = d.announcements.find(x => x.id === id); if (a) { a.audience = audience; a.title = (title || "").trim(); a.text = (text || "").trim(); a.edited = true; } return d; }),
+    deleteAnnouncement: (id) => D(d => { d.announcements = d.announcements.filter(a => a.id !== id); d.notifications = d.notifications.filter(n => n.refId !== id); return d; }),
     deleteDiary: (id) => D(d => { d.diary = d.diary.filter(x => x.id !== id); return d; }),
     toggleLike: (id) => D(d => { const x = d.diary.find(x => x.id === id); x.liked = !x.liked; x.likes += x.liked ? 1 : -1; return d; }),
     addGoal: (g) => D(d => { d.goals.push(g); return d; }),
@@ -1776,17 +1817,23 @@ export default function App() {
     reopenPay: (id) => D(d => { const p = d.payments.find(p => p.id === id); if (p) { p.status = "pending"; p.confirmed = false; p.method = null; p.date = null; } return d; }),
     sendMsg: (key, by, text) => D(d => {
       if (!d.chats[key]) d.chats[key] = [];
-      d.chats[key].push({ by, text, time: hhmm(), readBy: [] });
-      const [sid, type] = key.split("|");
-      const stu = d.students.find(s => s.id === sid);
-      let aud = null;
-      if (type === "tp") aud = by === "teacher" ? { kind: "parentOf", studentId: sid } : { kind: "teacherOf", studentId: sid };
-      else if (type === "pd") aud = by === "director" ? { kind: "parentOf", studentId: sid } : { kind: "admin" };
-      else if (type === "td") aud = by === "director" ? { kind: "teacherOf", studentId: sid } : { kind: "admin" };
+      d.chats[key].push({ by, text, time: hhmm(), ts: Date.now(), readBy: [] });
+      let aud = null, academyId = null;
+      if (key.startsWith("dt:")) {
+        const tid = key.slice(3); const t = d.teachers.find(x => x.id === tid); academyId = t && t.academyId;
+        aud = by === "director" ? { kind: "teacher", teacherId: tid } : { kind: "admin" };
+      } else {
+        const [sid, type] = key.split("|");
+        const stu = d.students.find(s => s.id === sid); academyId = stu && stu.academyId;
+        if (type === "tp") aud = by === "teacher" ? { kind: "parentOf", studentId: sid } : { kind: "teacherOf", studentId: sid };
+        else if (type === "pd") aud = by === "director" ? { kind: "parentOf", studentId: sid } : { kind: "admin" };
+        else if (type === "td") aud = by === "director" ? { kind: "teacherOf", studentId: sid } : { kind: "admin" };
+      }
       const who = by === "teacher" ? "선생님" : by === "director" ? "원장님" : "학부모";
-      d.notifications.unshift({ id: uid("n"), academyId: stu && stu.academyId, aud, type: "chat", key, text: `💬 ${who} · ${text.slice(0, 22)}`, time: hhmm(), readBy: [] });
+      d.notifications.unshift({ id: uid("n"), academyId, aud, type: "chat", key, text: `💬 ${who} · ${text.slice(0, 22)}`, time: hhmm(), readBy: [] });
       return d;
     }),
+    editMsg: (key, idx, text, myId) => D(d => { const arr = d.chats[key]; const m = arr && arr[idx]; if (m) { const readByOther = (m.readBy || []).some(x => x !== myId); if (!readByOther) { m.text = text; m.edited = true; } } return d; }),
     markThreadRead: (key, accId) => D(d => { (d.chats[key] || []).forEach(m => { if (!m.readBy) m.readBy = []; if (!m.readBy.includes(accId)) m.readBy.push(accId); }); d.notifications.forEach(n => { if (n.key === key && !n.readBy.includes(accId)) n.readBy.push(accId); }); return d; }),
     markNotifRead: (nid, accId) => D(d => { const n = d.notifications.find(n => n.id === nid); if (n && !n.readBy.includes(accId)) n.readBy.push(accId); return d; }),
     markAllNotifsRead: (ids, accId) => D(d => { d.notifications.forEach(n => { if (ids.includes(n.id) && !n.readBy.includes(accId)) n.readBy.push(accId); }); return d; }),
@@ -1847,6 +1894,7 @@ export default function App() {
     if (a.kind === "admin") return me.role === "admin";
     if (a.kind === "parentOf") return me.role === "parent" && me.studentIds.includes(a.studentId);
     if (a.kind === "teacherOf") { const stu = data.students.find(s => s.id === a.studentId); return me.role === "teacher" && stu && stu.teacherId === me.teacherId; }
+    if (a.kind === "teacher") return me.role === "teacher" && me.teacherId === a.teacherId;
     if (a.kind === "allParents") return me.role === "parent";
     if (a.kind === "allTeachers") return me.role === "teacher";
     if (a.kind === "everyone") return me.role === "parent" || me.role === "teacher";
