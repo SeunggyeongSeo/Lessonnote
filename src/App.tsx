@@ -1172,6 +1172,7 @@ function ChatView({ data, student, me, academy, api }) {
   const [open, setOpen] = useState(null); const [cq, setCq] = useState("");
   const [noticeCompose, setNoticeCompose] = useState(false); const [noticeOpen, setNoticeOpen] = useState(null);
   const [noticeEdit, setNoticeEdit] = useState(null); const [noticeListOpen, setNoticeListOpen] = useState(false);
+  const [schedNoticeEdit, setSchedNoticeEdit] = useState(null);
   const [newChatOpen, setNewChatOpen] = useState(false); const [ncq, setNcq] = useState("");
   useEffect(() => { if (open) api.markThreadRead(open.key, me.id); }, [open && open.key]);
   const myBy = me.role === "parent" ? "parent" : me.role === "teacher" ? "teacher" : "director";
@@ -1189,7 +1190,7 @@ function ChatView({ data, student, me, academy, api }) {
   else if (me.role === "teacher") { const myStudents = data.students.filter(s => s.teacherId === me.teacherId); convs = myStudents.map(s => ({ key: `${s.id}|tp`, with: "parent", studentId: s.id })); convs.push({ key: `dt:${me.teacherId}`, with: "director" }); }
   else { pickList = [...acTeachers.map(t => ({ key: `dt:${t.id}`, with: "teacher", teacherId: t.id })), ...acStudents.map(s => ({ key: `${s.id}|pd`, with: "parent", studentId: s.id }))]; convs = pickList.filter(c => hasMsgs(c.key)); }
   const showStudentTag = me.role !== "parent" || (me.studentIds || []).length > 1;
-  if (open) { const msgs = data.chats[open.key] || []; const threadSched = (data.scheduled || []).filter(s => s.kind === "msg" && s.key === open.key).sort((a, b) => a.sendAt - b.sendAt); return <Thread title={`${labelFor(open.with, open.studentId, open.teacherId)}${showStudentTag && open.studentId ? ` · ${sName(open.studentId)}` : ""}`} color={colorFor(open.with, open.studentId, open.teacherId)} msgs={msgs} myBy={myBy} myId={me.id} onBack={() => setOpen(null)} onSend={(t) => api.sendMsg(open.key, myBy, t)} onEdit={(i, t) => api.editMsg(open.key, i, t, me.id)} scheduled={threadSched} onSchedule={(t, at) => api.scheduleMsg(open.key, myBy, t, at)} onCancelSched={(id) => api.cancelScheduled(id)} />; }
+  if (open) { const msgs = data.chats[open.key] || []; const threadSched = (data.scheduled || []).filter(s => s.kind === "msg" && s.key === open.key).sort((a, b) => a.sendAt - b.sendAt); return <Thread title={`${labelFor(open.with, open.studentId, open.teacherId)}${showStudentTag && open.studentId ? ` · ${sName(open.studentId)}` : ""}`} color={colorFor(open.with, open.studentId, open.teacherId)} msgs={msgs} myBy={myBy} myId={me.id} onBack={() => setOpen(null)} onSend={(t) => api.sendMsg(open.key, myBy, t)} onEdit={(i, t) => api.editMsg(open.key, i, t, me.id)} scheduled={threadSched} onSchedule={(t, at) => api.scheduleMsg(open.key, myBy, t, at)} onCancelSched={(id) => api.cancelScheduled(id)} onEditSched={(id, t, at) => api.editScheduled(id, { text: t, sendAt: at })} />; }
   const audOk = (an) => me.role === "admin" || (an.audience === "everyone") || (an.audience === "parents" && me.role === "parent") || (an.audience === "teachers" && me.role === "teacher");
   const notices = (data.announcements || []).filter(a => a.academyId === me.academyId && audOk(a));
   const audLabel = { parents: "학부모", teachers: "강사", everyone: "전체" };
@@ -1206,7 +1207,7 @@ function ChatView({ data, student, me, academy, api }) {
           </button>
         ))}
         {notices.length > 4 && <button className="dc-btn" onClick={() => setNoticeListOpen(true)} style={{ width: "100%", textAlign: "center", background: "#F0E7D9", color: "var(--plum)", borderRadius: 10, padding: "8px 0", fontSize: 12, fontWeight: 700, marginTop: 4 }}>공지 전체 보기 ({notices.length}건)</button>}
-        {me.role === "admin" && (data.scheduled || []).some(s => s.kind === "notice" && s.academyId === me.academyId) && <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--line)" }}><div style={{ fontSize: 11.5, color: "var(--plum)", fontWeight: 700, marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}><Clock size={13} /> 예약된 공지</div>{(data.scheduled || []).filter(s => s.kind === "notice" && s.academyId === me.academyId).sort((a, b) => a.sendAt - b.sendAt).map(s => (<div key={s.id} style={{ display: "flex", alignItems: "center", gap: 8, background: "#F8F1E6", borderRadius: 10, padding: "7px 10px", marginBottom: 6 }}><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.title}</div><div style={{ fontSize: 10.5, color: "var(--ink-soft)" }}>{fmtDay(s.sendAt)} {fmtClock(s.sendAt)} 발송 예정</div></div><button className="dc-btn" onClick={() => api.confirm({ title: "예약 공지를 취소할까요?", message: s.title, onConfirm: () => api.cancelScheduled(s.id) })} style={{ background: "#FBE0DC", borderRadius: 8, padding: 6, color: "#C45A48" }}><X size={13} /></button></div>))}</div>}
+        {me.role === "admin" && (data.scheduled || []).some(s => s.kind === "notice" && s.announcement && s.announcement.academyId === me.academyId) && <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--line)" }}><div style={{ fontSize: 11.5, color: "var(--plum)", fontWeight: 700, marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}><Clock size={13} /> 예약된 공지</div>{(data.scheduled || []).filter(s => s.kind === "notice" && s.announcement && s.announcement.academyId === me.academyId).sort((a, b) => a.sendAt - b.sendAt).map(s => (<div key={s.id} style={{ display: "flex", alignItems: "center", gap: 8, background: "#F8F1E6", borderRadius: 10, padding: "7px 10px", marginBottom: 6 }}><button className="dc-btn" onClick={() => setSchedNoticeEdit(s)} style={{ flex: 1, minWidth: 0, background: "none", textAlign: "left", padding: 0 }}><div style={{ fontSize: 12.5, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.announcement.title}</div><div style={{ fontSize: 10.5, color: "var(--ink-soft)" }}>{fmtDay(s.sendAt)} {fmtClock(s.sendAt)} · 눌러서 수정</div></button><button className="dc-btn" onClick={() => api.confirm({ title: "예약 공지를 취소할까요?", message: s.announcement.title, onConfirm: () => api.cancelScheduled(s.id) })} style={{ background: "#FBE0DC", borderRadius: 8, padding: 6, color: "#C45A48" }}><X size={13} /></button></div>))}</div>}
       </div>
       {me.role === "admin" && <button className="dc-btn" onClick={() => { setNcq(""); setNewChatOpen(true); }} style={{ width: "100%", padding: 13, borderRadius: 14, background: "linear-gradient(140deg,#6A4C7A,#4D3759)", color: "#fff", fontSize: 13.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, marginBottom: 12 }}><Plus size={16} /> 새 채팅 (학부모·강사 찾기)</button>}
       {convs.length > 8 && <SearchBox value={cq} onChange={setCq} placeholder="이름으로 대화 찾기" />}
@@ -1224,6 +1225,7 @@ function ChatView({ data, student, me, academy, api }) {
         </div>}
       </Sheet>)}
       {noticeEdit && <NoticeCompose initial={noticeEdit} onSave={(v) => { api.editAnnouncement(noticeEdit.id, v); setNoticeEdit(null); }} onClose={() => setNoticeEdit(null)} />}
+      {schedNoticeEdit && <NoticeCompose initial={{ audience: schedNoticeEdit.announcement.audience, title: schedNoticeEdit.announcement.title, text: schedNoticeEdit.announcement.text, sendAt: schedNoticeEdit.sendAt }} onSave={(v) => { api.editScheduled(schedNoticeEdit.id, { audience: v.audience, title: v.title, text: v.text, sendAt: v.sendAt || schedNoticeEdit.sendAt }); setSchedNoticeEdit(null); }} onClose={() => setSchedNoticeEdit(null)} />}
       {noticeListOpen && (<Sheet title={`공지 전체 (${notices.length}건)`} onClose={() => setNoticeListOpen(null)}>
         {notices.length === 0 && <Empty msg="등록된 공지가 없어요." />}
         {notices.map(an => (<button key={an.id} className="dc-btn" onClick={() => { setNoticeListOpen(false); setNoticeOpen(an); }} style={{ width: "100%", textAlign: "left", background: "#FAF3E8", borderRadius: 12, padding: "11px 13px", marginBottom: 8, display: "flex", alignItems: "center", gap: 10 }}>
@@ -1245,46 +1247,51 @@ function ChatView({ data, student, me, academy, api }) {
   );
 }
 function NoticeCompose({ onSave, onClose, initial }) {
+  const isSchedEdit = !!(initial && initial.sendAt);
   const [audience, setAud] = useState(initial?.audience || "everyone"); const [title, setTitle] = useState(initial?.title || ""); const [text, setText] = useState(initial?.text || "");
-  const [sched, setSched] = useState(false); const [at, setAt] = useState(toLocalInput(new Date(Date.now() + 3600000)));
+  const [sched, setSched] = useState(false); const [at, setAt] = useState(isSchedEdit ? toLocalInput(new Date(initial.sendAt)) : toLocalInput(new Date(Date.now() + 3600000)));
   const AUDS = [["everyone", "전체"], ["parents", "학부모"], ["teachers", "강사"]];
-  const willSched = !initial && sched && at;
-  return (<Sheet title={initial ? "공지 수정" : "공지 작성"} onClose={onClose}>
+  const willSched = isSchedEdit ? !!at : (!initial && sched && at);
+  return (<Sheet title={isSchedEdit ? "예약 공지 수정" : initial ? "공지 수정" : "공지 작성"} onClose={onClose}>
     <label className="dc-label">받는 대상</label>
     <div style={{ display: "flex", gap: 7, marginBottom: 14 }}>{AUDS.map(([k, l]) => <button key={k} className="dc-btn" onClick={() => setAud(k)} style={{ flex: 1, padding: "10px 0", borderRadius: 12, background: audience === k ? "linear-gradient(140deg,#6A4C7A,#4D3759)" : "#fff", color: audience === k ? "#fff" : "var(--ink)", border: "1px solid var(--line)", fontSize: 13, fontWeight: audience === k ? 700 : 400 }}>{l}</button>)}</div>
     <Field label="제목" value={title} onChange={setTitle} />
     <label className="dc-label">내용</label>
     <textarea className="dc-input" value={text} onChange={e => setText(e.target.value)} placeholder="공지 내용을 입력하세요" style={{ minHeight: 120, resize: "none", marginBottom: 14 }} />
     {!initial && <div style={{ marginBottom: 16 }}><label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, cursor: "pointer" }}><input type="checkbox" checked={sched} onChange={e => setSched(e.target.checked)} style={{ width: 16, height: 16 }} /> <Clock size={15} color="var(--plum)" /> 예약 발송</label>{sched && <input type="datetime-local" value={at} onChange={e => setAt(e.target.value)} style={{ marginTop: 9, width: "100%", border: "1px solid var(--line)", borderRadius: 12, padding: "11px 12px", fontSize: 13.5, fontFamily: "inherit", outline: "none" }} />}</div>}
-    <PrimaryBtn onClick={() => { if (!title.trim() || !text.trim()) return; onSave({ audience, title: title.trim(), text: text.trim(), sendAt: willSched ? new Date(at).getTime() : null }); }}>{initial ? <><Pencil size={16} /> 공지 수정</> : willSched ? <><Clock size={16} /> 예약 등록</> : <><Bell size={16} /> 공지 발송</>}</PrimaryBtn>
+    {isSchedEdit && <div style={{ marginBottom: 16 }}><label className="dc-label">발송 시각</label><input type="datetime-local" value={at} onChange={e => setAt(e.target.value)} style={{ width: "100%", border: "1px solid var(--line)", borderRadius: 12, padding: "11px 12px", fontSize: 13.5, fontFamily: "inherit", outline: "none" }} /></div>}
+    <PrimaryBtn onClick={() => { if (!title.trim() || !text.trim()) return; onSave({ audience, title: title.trim(), text: text.trim(), sendAt: willSched ? new Date(at).getTime() : null }); }}>{isSchedEdit ? <><Clock size={16} /> 예약 수정</> : initial ? <><Pencil size={16} /> 공지 수정</> : willSched ? <><Clock size={16} /> 예약 등록</> : <><Bell size={16} /> 공지 발송</>}</PrimaryBtn>
   </Sheet>);
 }
-function Thread({ title, color, msgs, myBy, myId, onBack, onSend, onEdit, scheduled = [], onSchedule, onCancelSched }) {
+function Thread({ title, color, msgs, myBy, myId, onBack, onSend, onEdit, scheduled = [], onSchedule, onCancelSched, onEditSched }) {
   const [val, setVal] = useState(""); const endRef = useRef(null);
   const [editIdx, setEditIdx] = useState(null); const [editVal, setEditVal] = useState("");
   const [schedOpen, setSchedOpen] = useState(false); const [schedAt, setSchedAt] = useState(toLocalInput(new Date(Date.now() + 3600000)));
   const [schedListOpen, setSchedListOpen] = useState(false);
+  const [schedText, setSchedText] = useState(""); const [schedEditId, setSchedEditId] = useState(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
   const send = () => { const t = val.trim(); if (!t) return; onSend(t); setVal(""); };
   const readByOther = (m) => (m.readBy || []).some(x => x !== myId);
   const startEdit = (i, m) => { setEditIdx(i); setEditVal(m.text); };
   const saveEdit = (i) => { const t = editVal.trim(); if (t && onEdit) onEdit(i, t); setEditIdx(null); setEditVal(""); };
-  const doSchedule = () => { const t = val.trim(); if (!t || !onSchedule || !schedAt) return; onSchedule(t, new Date(schedAt).getTime()); setVal(""); setSchedOpen(false); };
+  const doSchedule = () => { const t = schedText.trim(); if (!t || !schedAt) return; const at = new Date(schedAt).getTime(); if (schedEditId) { if (onEditSched) onEditSched(schedEditId, t, at); } else { if (onSchedule) onSchedule(t, at); setVal(""); } setSchedOpen(false); };
+  const openNewSched = () => { if (!val.trim()) return; setSchedText(val.trim()); setSchedAt(toLocalInput(new Date(Date.now() + 3600000))); setSchedEditId(null); setSchedOpen(true); };
+  const openEditSched = (s) => { setSchedText(s.message.text); setSchedAt(toLocalInput(new Date(s.sendAt))); setSchedEditId(s.id); setSchedListOpen(false); setSchedOpen(true); };
   return (<div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
     <div style={{ display: "flex", alignItems: "center", gap: 10, paddingBottom: 14, borderBottom: "1px solid var(--line)", flexShrink: 0 }}><button className="dc-btn" onClick={onBack} style={{ background: "none", padding: 4 }}><ChevronLeft size={22} color="var(--plum)" /></button><div style={{ width: 40, height: 40, borderRadius: 14, background: `linear-gradient(140deg,${color},${color}bb)`, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}><User size={18} /></div><div style={{ flex: 1 }}><div className="dc-serif" style={{ fontSize: 15.5, fontWeight: 700 }}>{title}</div></div></div>
     <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: 11, padding: "14px 2px" }}><div style={{ textAlign: "center", fontSize: 11, color: "var(--ink-soft)" }}>대화 내용은 안전하게 보관됩니다</div>{msgs.map((m, i) => { const mine = m.by === myBy; const editable = mine && !readByOther(m) && !!onEdit; const editing = editIdx === i; const showDay = m.ts && !sameDay(m.ts, (msgs[i - 1] || {}).ts); return (<React.Fragment key={i}>{showDay && <div style={{ textAlign: "center", margin: "2px 0 4px" }}><span style={{ fontSize: 10.5, color: "var(--ink-soft)", background: "#F0E7D9", borderRadius: 999, padding: "3px 12px" }}>{fmtDay(m.ts)}</span></div>}<div style={{ display: "flex", justifyContent: mine ? "flex-end" : "flex-start", alignItems: "flex-end", gap: 7 }}>{!mine && <div style={{ width: 26, height: 26, borderRadius: 9, background: color, color: "#fff", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10 }}>{BY_LABEL[m.by][0]}</div>}<div style={{ maxWidth: "82%" }}>{editing ? (<div style={{ display: "flex", gap: 5, alignItems: "center" }}><input value={editVal} autoFocus onChange={e => setEditVal(e.target.value)} onKeyDown={e => { if (e.key === "Enter") saveEdit(i); if (e.key === "Escape") setEditIdx(null); }} style={{ border: "1px solid var(--plum)", borderRadius: 12, padding: "8px 11px", fontSize: 13.5, fontFamily: "inherit", outline: "none", minWidth: 120 }} /><button className="dc-btn" onClick={() => saveEdit(i)} style={{ background: "var(--plum)", color: "#fff", borderRadius: 10, padding: "0 11px", height: 34, fontSize: 12.5 }}>저장</button><button className="dc-btn" onClick={() => setEditIdx(null)} style={{ background: "#EFE6D8", color: "var(--ink-soft)", borderRadius: 10, padding: "0 9px", height: 34, fontSize: 12.5 }}>취소</button></div>) : (<div className={"dc-bubble " + (mine ? "me" : "them")} onClick={editable ? () => startEdit(i, m) : undefined} style={{ cursor: editable ? "pointer" : "default" }}>{m.text}</div>)}{!editing && <div style={{ fontSize: 10, color: "var(--ink-soft)", marginTop: 3, textAlign: mine ? "right" : "left", display: "flex", gap: 4, justifyContent: mine ? "flex-end" : "flex-start", alignItems: "center" }}>{mine && (readByOther(m) ? <span style={{ color: "var(--mint)", display: "inline-flex", alignItems: "center", gap: 2 }}><CheckCheck size={12} /> 읽음</span> : <span style={{ display: "inline-flex", alignItems: "center", gap: 2 }}><Check size={12} /> 전송</span>)}{m.edited && <span style={{ opacity: .7 }}>· 수정됨</span>}<span>{m.ts ? fmtClock(m.ts) : m.time}</span>{editable && <button className="dc-btn" onClick={() => startEdit(i, m)} style={{ background: "none", padding: "0 0 0 3px", color: "var(--plum)", display: "inline-flex", alignItems: "center" }}><Pencil size={11} /></button>}</div>}</div></div></React.Fragment>); })}<div ref={endRef} /></div>
     {scheduled.length > 0 && <button className="dc-btn" onClick={() => setSchedListOpen(true)} style={{ alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 6, background: "#F3E2D3", color: "var(--plum)", borderRadius: 10, padding: "7px 11px", fontSize: 11.5, fontWeight: 700, marginTop: 8 }}><Clock size={13} /> 예약 메시지 {scheduled.length}건 보기</button>}
-    <div style={{ display: "flex", gap: 8, alignItems: "center", paddingTop: 10, flexShrink: 0 }}><input value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === "Enter" && send()} onFocus={() => setTimeout(() => endRef.current?.scrollIntoView({ block: "end" }), 250)} placeholder="메시지를 입력하세요…" style={{ flex: 1, border: "1px solid var(--line)", background: "#fff", borderRadius: 18, padding: "12px 16px", fontSize: 13.5, fontFamily: "inherit", outline: "none" }} />{onSchedule && <button className="dc-btn" onClick={() => { if (val.trim()) { setSchedAt(toLocalInput(new Date(Date.now() + 3600000))); setSchedOpen(true); } }} title="예약 전송" style={{ width: 46, height: 46, borderRadius: 16, background: "#F0E7D9", color: "var(--plum)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Clock size={18} /></button>}<button className="dc-btn" onClick={send} style={{ width: 46, height: 46, borderRadius: 16, background: "linear-gradient(140deg,#6A4C7A,#4D3759)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Send size={18} /></button></div>
-    {schedOpen && (<Sheet title="메시지 예약 전송" onClose={() => setSchedOpen(false)}>
+    <div style={{ display: "flex", gap: 8, alignItems: "center", paddingTop: 10, flexShrink: 0 }}><input value={val} onChange={e => setVal(e.target.value)} onKeyDown={e => e.key === "Enter" && send()} onFocus={() => setTimeout(() => endRef.current?.scrollIntoView({ block: "end" }), 250)} placeholder="메시지를 입력하세요…" style={{ flex: 1, border: "1px solid var(--line)", background: "#fff", borderRadius: 18, padding: "12px 16px", fontSize: 13.5, fontFamily: "inherit", outline: "none" }} />{onSchedule && <button className="dc-btn" onClick={openNewSched} title="예약 전송" style={{ width: 46, height: 46, borderRadius: 16, background: "#F0E7D9", color: "var(--plum)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Clock size={18} /></button>}<button className="dc-btn" onClick={send} style={{ width: 46, height: 46, borderRadius: 16, background: "linear-gradient(140deg,#6A4C7A,#4D3759)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Send size={18} /></button></div>
+    {schedOpen && (<Sheet title={schedEditId ? "예약 메시지 수정" : "메시지 예약 전송"} onClose={() => setSchedOpen(false)}>
       <label className="dc-label">보낼 내용</label>
-      <div style={{ background: "#F8F1E6", borderRadius: 12, padding: "10px 13px", fontSize: 13.5, color: "#473f52", marginBottom: 14, whiteSpace: "pre-wrap" }}>{val.trim() || "(내용을 입력해주세요)"}</div>
+      <textarea className="dc-input" value={schedText} onChange={e => setSchedText(e.target.value)} placeholder="보낼 메시지를 입력하세요" style={{ minHeight: 80, resize: "none", marginBottom: 14 }} />
       <label className="dc-label">보낼 시각</label>
       <input type="datetime-local" value={schedAt} onChange={e => setSchedAt(e.target.value)} style={{ width: "100%", border: "1px solid var(--line)", borderRadius: 12, padding: "11px 12px", fontSize: 13.5, fontFamily: "inherit", outline: "none", marginBottom: 18 }} />
-      <PrimaryBtn onClick={doSchedule}><Clock size={16} /> 예약 등록</PrimaryBtn>
+      <PrimaryBtn onClick={doSchedule}><Clock size={16} /> {schedEditId ? "예약 수정" : "예약 등록"}</PrimaryBtn>
     </Sheet>)}
     {schedListOpen && (<Sheet title={`예약 메시지 (${scheduled.length}건)`} onClose={() => setSchedListOpen(false)}>
       {scheduled.length === 0 && <Empty msg="예약된 메시지가 없어요." />}
-      {scheduled.map(s => (<div key={s.id} style={{ display: "flex", alignItems: "center", gap: 8, background: "#F8F1E6", borderRadius: 12, padding: "10px 12px", marginBottom: 8 }}><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 13, color: "#473f52", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.text}</div><div style={{ fontSize: 10.5, color: "var(--ink-soft)", marginTop: 2 }}>{fmtDay(s.sendAt)} {fmtClock(s.sendAt)} 발송 예정</div></div><button className="dc-btn" onClick={() => onCancelSched && onCancelSched(s.id)} style={{ background: "#FBE0DC", borderRadius: 8, padding: 6, color: "#C45A48" }}><X size={13} /></button></div>))}
+      {scheduled.map(s => (<div key={s.id} style={{ display: "flex", alignItems: "center", gap: 8, background: "#F8F1E6", borderRadius: 12, padding: "10px 12px", marginBottom: 8 }}><button className="dc-btn" onClick={() => openEditSched(s)} style={{ flex: 1, minWidth: 0, background: "none", textAlign: "left", padding: 0 }}><div style={{ fontSize: 13, color: "#473f52", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.message.text}</div><div style={{ fontSize: 10.5, color: "var(--ink-soft)", marginTop: 2 }}>{fmtDay(s.sendAt)} {fmtClock(s.sendAt)} · 눌러서 수정</div></button><button className="dc-btn" onClick={() => onCancelSched && onCancelSched(s.id)} style={{ background: "#FBE0DC", borderRadius: 8, padding: 6, color: "#C45A48" }}><X size={13} /></button></div>))}
     </Sheet>)}
   </div>);
 }
@@ -1877,6 +1884,24 @@ export default function App() {
       return d;
     }),
     cancelScheduled: (id) => D(d => { d.scheduled = (d.scheduled || []).filter(s => s.id !== id); return d; }),
+    editScheduled: (id, patch) => D(d => {
+      const s = (d.scheduled || []).find(x => x.id === id); if (!s) return d;
+      const sendAt = patch.sendAt != null ? patch.sendAt : s.sendAt; s.sendAt = sendAt;
+      if (s.kind === "notice") {
+        const audience = patch.audience != null ? patch.audience : s.announcement.audience;
+        const title = patch.title != null ? patch.title : s.announcement.title;
+        const text = patch.text != null ? patch.text : s.announcement.text;
+        s.announcement = { ...s.announcement, audience, title, text, date: `${new Date(sendAt).getMonth() + 1}월 ${new Date(sendAt).getDate()}일`, time: hhmmOf(sendAt), ts: sendAt };
+        const kind = audience === "parents" ? "allParents" : audience === "teachers" ? "allTeachers" : "everyone";
+        s.notif = { ...s.notif, aud: { kind }, text: `📢 공지 · ${title.slice(0, 24)}`, time: hhmmOf(sendAt) };
+      } else {
+        const text = patch.text != null ? patch.text : s.message.text;
+        s.message = { ...s.message, text, time: hhmmOf(sendAt), ts: sendAt };
+        const who = s.message.by === "teacher" ? "선생님" : s.message.by === "director" ? "원장님" : "학부모";
+        s.notif = { ...s.notif, text: `💬 ${who} · ${text.slice(0, 22)}`, time: hhmmOf(sendAt) };
+      }
+      return d;
+    }),
     flushScheduled: () => D(d => {
       const now = Date.now(); const due = (d.scheduled || []).filter(s => s.sendAt <= now);
       if (!due.length) return d;
