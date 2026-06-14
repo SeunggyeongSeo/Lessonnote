@@ -825,10 +825,11 @@ function ScheduleView({ data, student, canEdit, academyTeachers, me, api }) {
   const [moveMode, setMoveMode] = useState(false); const [moveSrc, setMoveSrc] = useState(null); const [dragId, setDragId] = useState(null);
   const [kiosk, setKiosk] = useState(false); const [doneNow, setDoneNow] = useState([]); const [composeCtx, setComposeCtx] = useState(null);
   const [pkid, setPkid] = useState("all");
+  const [personalSid, setPersonalSid] = useState(student.id);
   const [namesDay, setNamesDay] = useState("월"); const [rosterAdd, setRosterAdd] = useState(null); const [rosterEdit, setRosterEdit] = useState(null); const [namesClass, setNamesClass] = useState("all"); const [namesQ, setNamesQ] = useState("");
   const classes = (data.classes || []).filter(c => c.academyId === student.academyId);
   const myKids = me.role === "parent" ? data.students.filter(s => (me.studentIds || []).includes(s.id)) : [];
-  const personalKids = myKids.length ? myKids : [student];
+  const personalKids = myKids.length ? myKids : [data.students.find(s => s.id === personalSid) || student];
   const KID_COLORS = ["#E07A55", "#6A4C7A", "#3F7CA8", "#C2548A", "#5B8C5A"];
   const childColors = Object.fromEntries(personalKids.map((k, i) => [k.id, KID_COLORS[i % KID_COLORS.length]]));
   const openSel = (l) => { setDoneNow([]); setSel(l); };
@@ -890,7 +891,9 @@ function ScheduleView({ data, student, canEdit, academyTeachers, me, api }) {
         const list = data.schedule.filter(l => shownKids.some(k => k.id === l.studentId));
         const byChild = multi && pkid === "all";
         const cnt = ATT_ORDER.map(a => list.filter(l => l.att === a).length);
+        const pickStudents = (me.role === "teacher" ? data.students.filter(s => s.academyId === student.academyId && s.teacherId === me.teacherId) : data.students.filter(s => s.academyId === student.academyId)).slice().sort((a, b) => a.name.localeCompare(b.name, "ko"));
         return (<>
+          {myKids.length === 0 && <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}><label style={{ fontSize: 12.5, color: "var(--ink-soft)", fontWeight: 700, flexShrink: 0 }}>학생</label><select value={personalSid} onChange={e => setPersonalSid(e.target.value)} style={{ flex: 1, border: "1px solid var(--line)", borderRadius: 12, padding: "9px 11px", fontSize: 13.5, fontFamily: "inherit", background: "#fff", outline: "none" }}>{pickStudents.map(s => <option key={s.id} value={s.id}>{s.name} · {tName(s.teacherId)}</option>)}</select></div>}
           {multi && <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, marginBottom: 12 }}>
             <button className="dc-btn" onClick={() => setPkid("all")} style={{ flexShrink: 0, padding: "7px 14px", borderRadius: 999, fontSize: 12.5, fontWeight: pkid === "all" ? 700 : 400, background: pkid === "all" ? "linear-gradient(140deg,#6A4C7A,#4D3759)" : "#fff", color: pkid === "all" ? "#fff" : "var(--ink)", border: "1px solid var(--line)" }}>통합 보기</button>
             {personalKids.map(k => <button key={k.id} className="dc-btn" onClick={() => setPkid(k.id)} style={{ flexShrink: 0, padding: "7px 14px", borderRadius: 999, fontSize: 12.5, fontWeight: pkid === k.id ? 700 : 400, background: pkid === k.id ? childColors[k.id] : "#fff", color: pkid === k.id ? "#fff" : "var(--ink)", border: "1px solid var(--line)", display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: childColors[k.id] }} />{k.name}</button>)}
@@ -2016,7 +2019,7 @@ export default function App() {
                 : me.role === "teacher" ? (<><div style={{ fontSize: 11.5, opacity: .8 }}>{me.name} 선생님 · 강사</div><div className="dc-serif" style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.25 }}>{student ? `지금 보는 학생: ${student.name}` : "담당 학생이 없어요"}</div></>)
                   : (<><div style={{ fontSize: 11.5, opacity: .8 }}>{me.name}님 · 안녕하세요!{me.studentIds.length > 1 ? ` (자녀 ${me.studentIds.length}명)` : ""}</div><div className="dc-serif" style={{ fontSize: 19, fontWeight: 700, lineHeight: 1.2 }}>{student ? <>{student.name} <span style={{ fontSize: 13, fontWeight: 400, opacity: .85 }}>{student.age}</span></> : "—"}</div></>)}
             </div>
-            {showPicker && student && tab !== "chat" && <button className="dc-btn" onClick={() => setPickStudent(true)} style={{ background: "rgba(255,255,255,.16)", borderRadius: 13, padding: "7px 11px", color: "#fff", display: "flex", alignItems: "center", gap: 5, fontSize: 12 }}>{me.role === "parent" ? "자녀" : "학생"} <ChevronDown size={14} /></button>}
+            {showPicker && student && tab !== "chat" && tab !== "schedule" && <button className="dc-btn" onClick={() => setPickStudent(true)} style={{ background: "rgba(255,255,255,.16)", borderRadius: 13, padding: "7px 11px", color: "#fff", display: "flex", alignItems: "center", gap: 5, fontSize: 12 }}>{me.role === "parent" ? "자녀" : "학생"} <ChevronDown size={14} /></button>}
           </div>
         </div>
 
