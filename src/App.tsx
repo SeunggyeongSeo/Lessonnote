@@ -1580,7 +1580,7 @@ function CollectView({ data, academy, students, api, me, onBack }) {
   const months = Array.from(new Set(books.map(p => p.month))).sort().reverse();
   const curMon = `${new Date().getMonth() + 1}월`;
   const [mon, setMon] = useState(months.find(m => m.includes(curMon)) || months[0] || "");
-  const [mf, setMf] = useState("all"); const [cq, setCq] = useState("");
+  const [mf, setMf] = useState("all"); const [cq, setCq] = useState(""); const [adding, setAdding] = useState(false);
   const sName = id => (students.find(s => s.id === id) || {}).name || "?";
   const sAva = id => (students.find(s => s.id === id) || {}).avatar || "🎵";
   const ckOf = (p) => p.checks || (p.status === "done" ? { s1: { on: true, by: "기존" }, s2: { on: true, by: "기존" } } : {});
@@ -1600,7 +1600,7 @@ function CollectView({ data, academy, students, api, me, onBack }) {
   const toggle = (p, idx) => { const allowed = idx === 0 ? canReq : canAdmin; if (!allowed) return; const stage = ["s1", "s2"][idx]; const cur = stageState(p)[idx]; api.toggleCheck(p.id, stage, !cur, me.role === "admin" ? "원장" : (me.name || "강사")); };
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}><button className="dc-btn" onClick={onBack} style={{ background: "#F0E7D9", borderRadius: 11, padding: 9 }}><ChevronLeft size={18} color="var(--plum)" /></button><div><div className="dc-serif" style={{ fontSize: 18, fontWeight: 700 }}>교재비 수납 확인</div><div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>수납확인 → 원장확인 · 누가·언제 확인했는지 기록</div></div></div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>{onBack && <button className="dc-btn" onClick={onBack} style={{ background: "#F0E7D9", borderRadius: 11, padding: 9 }}><ChevronLeft size={18} color="var(--plum)" /></button>}<div style={{ flex: 1 }}><div className="dc-serif" style={{ fontSize: 18, fontWeight: 700 }}>교재비 수납 확인</div><div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>수납확인 → 원장확인 · 누가·언제 확인했는지 기록</div></div><button className="dc-btn" onClick={() => setAdding(true)} style={{ background: "linear-gradient(140deg,#6A4C7A,#4D3759)", color: "#fff", borderRadius: 11, padding: "8px 12px", fontSize: 12.5, fontWeight: 700, display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}><Plus size={14} /> 교재비 입력</button></div>
       {books.length === 0 ? <Empty msg={"등록된 교재비가 없어요.\n‘학원 관리 → 수납 입력’에서 교재비를 추가해보세요."} /> : (<>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}><CalendarDays size={15} color="var(--plum)" /><select className="dc-input" value={mon} onChange={e => setMon(e.target.value)} style={{ flex: 1, marginBottom: 0, appearance: "auto", fontWeight: 700, color: "var(--plum-deep)" }}>{months.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>{[["완료", doneN, "#3F8267"], ["진행중", wipN, "#B5683F"], ["미시작", todoN, "#C45A48"]].map(([l, n, c]) => <div key={l} className="dc-card" style={{ flex: 1, padding: "11px 0", textAlign: "center" }}><div className="dc-fr" style={{ fontSize: 19, fontWeight: 600, color: c }}>{n}<span style={{ fontSize: 11, color: "var(--ink-soft)" }}>/{total}</span></div><div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{l}</div></div>)}</div>
@@ -1624,6 +1624,7 @@ function CollectView({ data, academy, students, api, me, onBack }) {
       ); })}
       <div style={{ fontSize: 11, color: "var(--ink-soft)", textAlign: "center", lineHeight: 1.6, marginTop: 6 }}>실제 결제 기능이 아니라 확인용 체크예요. ‘수납확인’은 강사·원장, ‘원장확인’은 원장만 체크할 수 있어요.</div>
       </>)}
+      {adding && <ChargeForm students={students} onCharge={(v) => { api.addCharge(v); setAdding(false); }} onClose={() => setAdding(false)} />}
     </div>
   );
 }
@@ -2004,8 +2005,8 @@ export default function App() {
   const myNotifs = data.notifications.filter(n => notifForMe(n) && prefOn(n.type));
   const unread = myNotifs.filter(n => !n.readBy.includes(me.id));
 
-  const fifth = me.role === "parent" ? { k: "pay", label: "결제", icon: CreditCard } : { k: "manage", label: "관리", icon: me.role === "admin" ? Settings : GraduationCap };
-  const TABS = [{ k: "diary", label: "알림장", icon: Home }, { k: "progress", label: "진도", icon: TrendingUp }, { k: "schedule", label: "시간표", icon: CalendarDays }, { k: "chat", label: "채팅", icon: MessageCircle }, fifth];
+  const tail = me.role === "parent" ? [{ k: "pay", label: "결제", icon: CreditCard }] : [{ k: "collect", label: "수납", icon: Receipt }, { k: "manage", label: "관리", icon: me.role === "admin" ? Settings : GraduationCap }];
+  const TABS = [{ k: "diary", label: "알림장", icon: Home }, { k: "progress", label: "진도", icon: TrendingUp }, { k: "schedule", label: "시간표", icon: CalendarDays }, { k: "chat", label: "채팅", icon: MessageCircle }, ...tail];
   const showPicker = me.role === "admin" || me.role === "teacher" || me.studentIds.length > 1;
   const childCandidates = data.students.filter(s => s.academyId === me.academyId && !me.studentIds.includes(s.id));
   const noStudent = !student;
@@ -2032,7 +2033,7 @@ export default function App() {
         </div>
 
         <div className="dc-body" key={authId + tab + (student ? student.id : "none")}>
-          {noStudent && tab !== "manage" ? (
+          {noStudent && tab !== "manage" && tab !== "collect" ? (
             <div style={{ paddingTop: 30 }}>
               {me.role === "parent" && data.linkRequests.some(r => r.accountId === me.id && r.status === "pending") ? (
                 <div className="dc-card" style={{ padding: 22, textAlign: "center" }}>
@@ -2049,6 +2050,7 @@ export default function App() {
             {tab === "schedule" && <ScheduleView data={data} student={student} canEdit={canEdit} academyTeachers={academyTeachers} me={me} api={api} />}
             {tab === "chat" && <ChatView data={data} student={student} me={me} academy={academy} api={api} />}
             {tab === "pay" && <PaymentView data={data} student={student} api={api} />}
+            {tab === "collect" && <CollectView data={data} academy={academy} students={data.students.filter(s => s.academyId === me.academyId && (me.role === "teacher" ? s.teacherId === me.teacherId : true))} api={api} me={me} />}
             {tab === "manage" && <ManageView data={data} me={me} academy={academy} student={student} api={api} setActiveStudent={setActiveStudentId} setTab={setTab} onLogout={logout} />}
           </>)}
         </div>
@@ -2086,7 +2088,7 @@ export default function App() {
           <Sheet title="알림" onClose={() => setNotifOpen(false)}>
             {unread.length > 0 && <button className="dc-btn" onClick={() => api.markAllNotifsRead(myNotifs.map(n => n.id), me.id)} style={{ width: "100%", padding: 10, borderRadius: 12, background: "#F0E7D9", color: "var(--plum)", fontSize: 13, marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><CheckCheck size={15} /> 모두 읽음 처리</button>}
             {myNotifs.length === 0 && <Empty msg="새 알림이 없어요." />}
-            {myNotifs.map(n => { const isUnread = !n.readBy.includes(me.id); const goTab = n.type === "chat" ? "chat" : n.type === "diary" ? "diary" : n.type === "pay" ? (me.role === "admin" ? "manage" : "pay") : "diary"; const childName = (me.role === "parent" && me.studentIds.length > 1 && n.aud && n.aud.studentId) ? (data.students.find(s => s.id === n.aud.studentId) || {}).name : null; return (
+            {myNotifs.map(n => { const isUnread = !n.readBy.includes(me.id); const goTab = n.type === "chat" ? "chat" : n.type === "diary" ? "diary" : n.type === "pay" ? (me.role === "parent" ? "pay" : "collect") : "diary"; const childName = (me.role === "parent" && me.studentIds.length > 1 && n.aud && n.aud.studentId) ? (data.students.find(s => s.id === n.aud.studentId) || {}).name : null; return (
               <button key={n.id} className="dc-btn" onClick={() => { api.markNotifRead(n.id, me.id); setTab(goTab); setNotifOpen(false); }} style={{ width: "100%", display: "flex", alignItems: "flex-start", gap: 11, padding: "12px 12px", marginBottom: 8, borderRadius: 14, background: isUnread ? "#FFF6EC" : "#fff", border: `1px solid ${isUnread ? "#F4D7C2" : "var(--line)"}`, textAlign: "left" }}>
                 <div style={{ width: 8, height: 8, borderRadius: "50%", background: isUnread ? "var(--coral-deep)" : "transparent", marginTop: 6, flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>{childName && <div style={{ display: "inline-block", fontSize: 10.5, fontWeight: 700, color: "var(--plum)", background: "#F3E2D3", borderRadius: 6, padding: "1px 7px", marginBottom: 4 }}>{childName}</div>}<div style={{ fontSize: 13.5, fontWeight: isUnread ? 700 : 400, color: "var(--ink)", lineHeight: 1.5 }}>{n.text}</div><div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 3 }}>{n.time}</div></div>
