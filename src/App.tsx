@@ -127,12 +127,15 @@ const SEED = {
     { id: "sc7", studentId: "s3", teacherId: "t2", day: "목", time: "17:00", dur: 50, kind: "피아노 정규", room: "1관 A실", att: "upcoming" },
   ],
   payments: [
-    { id: "p1", studentId: "s1", month: "2026년 6월 수강료", amount: 220000, status: "pending", due: "6월 5일까지", items: ["피아노 정규 (주 2회)", "이론·실기 (주 1회)", "교재비 — 체르니30"], feeType: "수강료", checks: { s1: { on: true, by: "원장", at: "6/1" } } },
+    { id: "p1", studentId: "s1", month: "2026년 6월 수강료", amount: 220000, status: "pending", due: "6월 5일까지", items: ["피아노 정규 (주 2회)", "이론·실기 (주 1회)", "교재비 — 체르니30"] },
     { id: "p2", studentId: "s1", month: "2026년 5월 수강료", amount: 220000, status: "done", date: "5월 4일 결제", method: "신용카드 ****4821" },
     { id: "p3", studentId: "s1", month: "2026년 4월 수강료", amount: 200000, status: "done", date: "4월 3일 결제", method: "계좌이체" },
-    { id: "p4", studentId: "s2", month: "2026년 6월 수강료", amount: 180000, status: "pending", due: "6월 5일까지", items: ["피아노 정규 (주 2회)", "교재비 — 바이엘 하권"], feeType: "수강료", checks: { s1: { on: true, by: "원장", at: "6/1" }, s2: { on: true, by: "원장", at: "6/3" } } },
+    { id: "p4", studentId: "s2", month: "2026년 6월 수강료", amount: 180000, status: "pending", due: "6월 5일까지", items: ["피아노 정규 (주 2회)", "교재비 — 바이엘 하권"] },
     { id: "p5", studentId: "s3", month: "2026년 6월 수강료", amount: 200000, status: "done", date: "6월 2일 결제", method: "신용카드 ****1130" },
     { id: "p6", studentId: "s4", month: "2026년 6월 수강료", amount: 170000, status: "pending", due: "6월 10일까지", items: ["피아노 정규 (주 1회)", "교재비 — 바이엘 하권"] },
+    { id: "pb1", studentId: "s1", month: "2026년 6월 교재비", amount: 15000, status: "pending", due: "6월 말까지", items: ["교재비 — 체르니30"], feeType: "교재비", checks: {} },
+    { id: "pb2", studentId: "s3", month: "2026년 6월 교재비", amount: 12000, status: "pending", due: "6월 말까지", items: ["교재비 — 소나티네"], feeType: "교재비", checks: { s1: { on: true, by: "B 선생님", at: "6/3" } } },
+    { id: "pb3", studentId: "s5", month: "2026년 6월 교재비", amount: 9000, status: "done", date: "6월 4일 확인", items: ["교재비 — 하농"], feeType: "교재비", checks: { s1: { on: true, by: "C 선생님", at: "6/2" }, s2: { on: true, by: "원장", at: "6/4" } } },
   ],
   chats: {
     "s1|tp": [{ by: "teacher", text: "안녕하세요 어머님 :) 오늘 수업 정말 잘했어요!", time: "15:02" }, { by: "parent", text: "선생님 감사합니다 🙏", time: "15:10" }, { by: "teacher", text: "다음 주부터 체르니 17번 들어갑니다!", time: "15:12" }],
@@ -213,6 +216,24 @@ const SEED = {
     SEED.roster.push({ id: uid("r"), academyId: "ac1", classId: cls, day: DAYS[i % DAYS.length], time: SLOTS[(i * 2) % SLOTS.length] || "14:00", name, studentId: sid, present: (i % 2) === 0, memo: "" });
   }
 })();
+
+/* 마이그레이션: 기존 저장 데이터에서 바이올린·보강 전용 반 자동 정리 (로드 시 1회, 멱등) */
+function cleanLegacy(d) {
+  try {
+    if (!d || typeof d !== "object" || !Array.isArray(d.teachers)) return d;
+    const vIds = new Set(d.teachers.filter(t => (t.subject || "").includes("바이올린")).map(t => t.id));
+    const repBy = {}; d.teachers.forEach(t => { if (!vIds.has(t.id) && !(t.academyId in repBy)) repBy[t.academyId] = t.id; });
+    const dropClass = new Set();
+    (d.classes || []).forEach(c => { const nm = c.name || ""; if (c.id === "c_vn" || nm === "바이올린" || (c.type === "list" && nm.includes("바이올린"))) dropClass.add(c.id); if (c.id === "c_mk" || (c.type === "list" && nm === "보강")) dropClass.add(c.id); });
+    if (vIds.size) { d.teachers = d.teachers.filter(t => !vIds.has(t.id)); d.accounts = (d.accounts || []).filter(a => !(a.teacherId && vIds.has(a.teacherId))); }
+    (d.students || []).forEach(s => { if (vIds.has(s.teacherId) && repBy[s.academyId]) s.teacherId = repBy[s.academyId]; });
+    const stuAc = {}; (d.students || []).forEach(s => { stuAc[s.id] = s.academyId; });
+    (d.schedule || []).forEach(l => { if (vIds.has(l.teacherId) && repBy[stuAc[l.studentId]]) l.teacherId = repBy[stuAc[l.studentId]]; if (typeof l.kind === "string") l.kind = l.kind.replace(/바이올린/g, "피아노"); if (typeof l.room === "string" && l.room.includes("바이올린")) l.room = "1관"; });
+    if (dropClass.size) { d.roster = (d.roster || []).filter(r => !dropClass.has(r.classId)); d.classes = (d.classes || []).filter(c => !dropClass.has(c.id)); }
+    (d.payments || []).forEach(p => { if (Array.isArray(p.items)) p.items = p.items.map(it => typeof it === "string" ? it.replace(/바이올린/g, "피아노") : it); });
+  } catch (e) { }
+  return d;
+}
 
 /* ---------------- styles ---------------- */
 const STYLES = `
@@ -1348,7 +1369,7 @@ function ManageView({ data, me, academy, student, api, setActiveStudent, setTab,
     );
   }
   const nq = q.trim();
-  const junePay = sid => data.payments.find(p => p.studentId === sid && p.month.includes("6월"));
+  const junePay = sid => data.payments.find(p => p.studentId === sid && (p.feeType || "수강료") !== "교재비" && p.month.includes("6월"));
   let filtered = students;
   if (nq) filtered = filtered.filter(s => s.name.includes(nq));
   if (filterT !== "all") filtered = filtered.filter(s => s.teacherId === filterT);
@@ -1365,11 +1386,11 @@ function ManageView({ data, me, academy, student, api, setActiveStudent, setTab,
   return (
     <div>
       <ViewTitle icon={<Settings size={15} />} kr="학원 관리" en="Admin" sub="학원 정보·강사·학생·결제를 모두 관리하세요" />
-      {me.role === "admin" && (() => { const unpaidN = students.filter(s => { const p = data.payments.find(p => p.studentId === s.id && p.month === `${new Date().getMonth() + 1}월`); return p && p.status !== "done"; }).length; return (
+      {me.role === "admin" && (() => { const bookRows = data.payments.filter(p => students.some(s => s.id === p.studentId) && (p.feeType || "") === "교재비"); const openN = bookRows.filter(p => !(p.checks && p.checks.s2 && p.checks.s2.on) && p.status !== "done").length; return (
         <button className="dc-btn dc-enter" onClick={() => setCollectOpen(true)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: 15, borderRadius: 18, background: "linear-gradient(140deg,#6A4C7A,#4D3759)", color: "#fff", marginBottom: 16, textAlign: "left" }}>
           <div style={{ width: 42, height: 42, borderRadius: 13, background: "rgba(255,255,255,.18)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Receipt size={20} /></div>
-          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }}>수납 확인 바로가기</div><div style={{ fontSize: 11.5, opacity: .85 }}>현장·이체·지역화폐·온라인 한눈에 이중확인</div></div>
-          {unpaidN > 0 ? <span style={{ background: "#fff", color: "#C45A48", fontSize: 12, fontWeight: 700, borderRadius: 999, padding: "4px 11px", flexShrink: 0 }}>미납 {unpaidN}</span> : <span style={{ background: "rgba(255,255,255,.2)", fontSize: 12, fontWeight: 700, borderRadius: 999, padding: "4px 11px", flexShrink: 0 }}>완납 ✓</span>}
+          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700 }}>교재비 수납 확인</div><div style={{ fontSize: 11.5, opacity: .85 }}>수납확인 → 원장확인 2단계로 누가·언제 확인</div></div>
+          {openN > 0 ? <span style={{ background: "#fff", color: "#C45A48", fontSize: 12, fontWeight: 700, borderRadius: 999, padding: "4px 11px", flexShrink: 0 }}>미완료 {openN}</span> : <span style={{ background: "rgba(255,255,255,.2)", fontSize: 12, fontWeight: 700, borderRadius: 999, padding: "4px 11px", flexShrink: 0 }}>완료 ✓</span>}
           <ChevronRight size={18} style={{ opacity: .8, flexShrink: 0 }} />
         </button>
       ); })()}
@@ -1427,7 +1448,7 @@ function ManageView({ data, me, academy, student, api, setActiveStudent, setTab,
         {filtered.length > shownStudents.length && <div style={{ marginTop: 10 }}><MoreBtn onClick={() => setLimit(l => l + 30)} remaining={filtered.length - shownStudents.length} /></div>}
       </div>
       <div className="dc-card dc-enter" style={{ padding: 16, marginBottom: 14 }}>
-        <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}><div className="dc-section-tt" style={{ flex: 1 }}><CreditCard size={14} /> 이번 달 수납 현황</div><button className="dc-btn" onClick={() => setCollectOpen(true)} style={{ background: "#EFE7F0", color: "var(--plum)", borderRadius: 10, padding: "6px 11px", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 4, marginRight: 6 }}><Receipt size={13} /> 수납확인</button><button className="dc-btn" onClick={() => setEdit({ type: "charge" })} style={{ background: "linear-gradient(140deg,#6A4C7A,#4D3759)", color: "#fff", borderRadius: 10, padding: "7px 12px", fontSize: 12.5, fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}><Plus size={14} /> 수납 입력</button></div>
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}><div className="dc-section-tt" style={{ flex: 1 }}><CreditCard size={14} /> 이번 달 수납 현황</div><button className="dc-btn" onClick={() => setCollectOpen(true)} style={{ background: "#EFE7F0", color: "var(--plum)", borderRadius: 10, padding: "6px 11px", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 4, marginRight: 6 }}><Receipt size={13} /> 교재비 확인</button><button className="dc-btn" onClick={() => setEdit({ type: "charge" })} style={{ background: "linear-gradient(140deg,#6A4C7A,#4D3759)", color: "#fff", borderRadius: 10, padding: "7px 12px", fontSize: 12.5, fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}><Plus size={14} /> 교재비 입력</button></div>
         {unpaidList.length === 0 ? <Empty msg="미납 학생이 없어요. 모두 완료! 🎉" /> : (<>{unpaidList.slice(0, 12).map(s => { const p = junePay(s.id); return (<div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: "1px solid var(--line)" }}><div style={{ fontSize: 18 }}>{s.avatar}</div><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 13.5, fontWeight: 700 }}>{s.name}</div><div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{p.month} · {won(p.amount)}</div></div><button className="dc-btn" onClick={() => setCollectOpen(true)} style={{ background: "#EFE7F0", color: "var(--plum)", borderRadius: 9, padding: "7px 11px", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}><Receipt size={13} /> 확인</button></div>); })}{unpaidList.length > 12 && <div style={{ fontSize: 12, color: "var(--ink-soft)", textAlign: "center", paddingTop: 10 }}>외 {unpaidList.length - 12}명 미납</div>}</>)}
       </div>
       <LogoutCard me={me} academy={academy} onLogout={onLogout} />
@@ -1549,60 +1570,60 @@ function LeadForm({ lead, onSave, onDelete, onClose }) {
     </div>
   </Sheet>);
 }
-const FEE_STAGES = {
-  "수강료": ["납부 요청 확인", "원장 수납 확인", "최종 확인"],
-  "교재비": ["강사 요청 확인", "원장 연락 완료", "수납 완료 확인"],
-};
+const FEE_STAGES = { "교재비": ["수납확인", "원장확인"] };
 function CollectView({ data, academy, students, api, me, onBack }) {
   const won = n => (n || 0).toLocaleString("ko-KR") + "원";
   const canReq = me.role === "teacher" || me.role === "admin";
   const canAdmin = me.role === "admin";
   const sids = new Set(students.map(s => s.id));
-  const months = Array.from(new Set(data.payments.filter(p => sids.has(p.studentId)).map(p => p.month))).sort().reverse();
+  const books = data.payments.filter(p => sids.has(p.studentId) && (p.feeType || "") === "교재비");
+  const months = Array.from(new Set(books.map(p => p.month))).sort().reverse();
   const curMon = `${new Date().getMonth() + 1}월`;
-  const [mon, setMon] = useState(months.find(m => m.includes(curMon)) || months[0] || curMon);
+  const [mon, setMon] = useState(months.find(m => m.includes(curMon)) || months[0] || "");
   const [mf, setMf] = useState("all"); const [cq, setCq] = useState("");
+  const sName = id => (students.find(s => s.id === id) || {}).name || "?";
   const sAva = id => (students.find(s => s.id === id) || {}).avatar || "🎵";
-  const ckOf = (p) => p.checks || (p.status === "done" ? { s1: { on: true, by: "기존" }, s2: { on: true, by: "기존" }, s3: { on: true, by: "기존" } } : {});
-  const stageState = (p) => { const c = ckOf(p); return [c.s1, c.s2, c.s3].map(x => !!(x && x.on)); };
-  const phaseOf = (p) => { const [a, b, cc] = stageState(p); return cc ? "done" : (a || b) ? "wip" : "todo"; };
-  const rows = students.map(s => ({ s, p: data.payments.find(p => p.studentId === s.id && p.month === mon) })).filter(x => x.p);
+  const ckOf = (p) => p.checks || (p.status === "done" ? { s1: { on: true, by: "기존" }, s2: { on: true, by: "기존" } } : {});
+  const stageState = (p) => { const c = ckOf(p); return [c.s1, c.s2].map(x => !!(x && x.on)); };
+  const phaseOf = (p) => { const [a, b] = stageState(p); return b ? "done" : a ? "wip" : "todo"; };
+  const rows = books.filter(p => p.month === mon);
   const total = rows.length;
-  const doneN = rows.filter(x => phaseOf(x.p) === "done").length;
-  const wipN = rows.filter(x => phaseOf(x.p) === "wip").length;
+  const doneN = rows.filter(p => phaseOf(p) === "done").length;
+  const wipN = rows.filter(p => phaseOf(p) === "wip").length;
   const todoN = total - doneN - wipN;
   let shown = rows;
-  if (mf === "todo") shown = rows.filter(x => phaseOf(x.p) !== "done");
-  else if (mf === "done") shown = rows.filter(x => phaseOf(x.p) === "done");
-  else if (mf === "수강료" || mf === "교재비") shown = rows.filter(x => (x.p.feeType || "수강료") === mf);
-  if (cq.trim()) shown = shown.filter(x => x.s.name.includes(cq.trim()));
-  const FILTERS = [["all", "전체"], ["todo", "미완료"], ["done", "완료"], ["수강료", "수강료"], ["교재비", "교재비"]];
-  const toggle = (p, idx) => { const allowed = idx === 0 ? canReq : canAdmin; if (!allowed) return; const stage = ["s1", "s2", "s3"][idx]; const cur = stageState(p)[idx]; api.toggleCheck(p.id, stage, !cur, me.role === "admin" ? "원장" : (me.name || "강사")); };
+  if (mf === "todo") shown = rows.filter(p => phaseOf(p) !== "done");
+  else if (mf === "done") shown = rows.filter(p => phaseOf(p) === "done");
+  if (cq.trim()) shown = shown.filter(p => sName(p.studentId).includes(cq.trim()));
+  const FILTERS = [["all", "전체"], ["todo", "미완료"], ["done", "완료"]];
+  const labels = FEE_STAGES["교재비"];
+  const toggle = (p, idx) => { const allowed = idx === 0 ? canReq : canAdmin; if (!allowed) return; const stage = ["s1", "s2"][idx]; const cur = stageState(p)[idx]; api.toggleCheck(p.id, stage, !cur, me.role === "admin" ? "원장" : (me.name || "강사")); };
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}><button className="dc-btn" onClick={onBack} style={{ background: "#F0E7D9", borderRadius: 11, padding: 9 }}><ChevronLeft size={18} color="var(--plum)" /></button><div><div className="dc-serif" style={{ fontSize: 18, fontWeight: 700 }}>수납 확인</div><div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>요청 → 원장 확인 → 완료까지 3단계로 누가·언제 확인했는지 기록</div></div></div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}><CalendarDays size={15} color="var(--plum)" /><select className="dc-input" value={mon} onChange={e => setMon(e.target.value)} style={{ flex: 1, marginBottom: 0, appearance: "auto", fontWeight: 700, color: "var(--plum-deep)" }}>{(months.length ? months : [curMon]).map(m => <option key={m} value={m}>{m}</option>)}</select></div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}><button className="dc-btn" onClick={onBack} style={{ background: "#F0E7D9", borderRadius: 11, padding: 9 }}><ChevronLeft size={18} color="var(--plum)" /></button><div><div className="dc-serif" style={{ fontSize: 18, fontWeight: 700 }}>교재비 수납 확인</div><div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>수납확인 → 원장확인 · 누가·언제 확인했는지 기록</div></div></div>
+      {books.length === 0 ? <Empty msg={"등록된 교재비가 없어요.\n‘학원 관리 → 수납 입력’에서 교재비를 추가해보세요."} /> : (<>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}><CalendarDays size={15} color="var(--plum)" /><select className="dc-input" value={mon} onChange={e => setMon(e.target.value)} style={{ flex: 1, marginBottom: 0, appearance: "auto", fontWeight: 700, color: "var(--plum-deep)" }}>{months.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>{[["완료", doneN, "#3F8267"], ["진행중", wipN, "#B5683F"], ["미시작", todoN, "#C45A48"]].map(([l, n, c]) => <div key={l} className="dc-card" style={{ flex: 1, padding: "11px 0", textAlign: "center" }}><div className="dc-fr" style={{ fontSize: 19, fontWeight: 600, color: c }}>{n}<span style={{ fontSize: 11, color: "var(--ink-soft)" }}>/{total}</span></div><div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{l}</div></div>)}</div>
       <SearchBox value={cq} onChange={setCq} placeholder="학생 이름으로 찾기" />
       <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, marginBottom: 12 }}>{FILTERS.map(([k, l]) => <button key={k} className="dc-btn" onClick={() => setMf(k)} style={{ flexShrink: 0, padding: "7px 13px", borderRadius: 999, fontSize: 12, fontWeight: mf === k ? 700 : 400, background: mf === k ? "#6A4C7A" : "#fff", color: mf === k ? "#fff" : "var(--ink)", border: "1px solid var(--line)" }}>{l}</button>)}</div>
-      {(cq.trim() || mf !== "all") && <div style={{ fontSize: 12, color: "var(--ink-soft)", margin: "0 4px 10px" }}>{shown.length}건 표시 중</div>}
-      {shown.length === 0 ? <Empty msg="해당 조건의 항목이 없어요." /> : shown.map(({ s, p }) => { const ft = p.feeType || "수강료"; const labels = FEE_STAGES[ft] || FEE_STAGES["수강료"]; const st = stageState(p); const ck = ckOf(p); const ph = phaseOf(p); return (
+      {shown.length === 0 ? <Empty msg="해당 조건의 교재비가 없어요." /> : shown.map(p => { const s = students.find(x => x.id === p.studentId) || {}; const st = stageState(p); const ck = ckOf(p); const ph = phaseOf(p); return (
         <div key={p.id} className="dc-card" style={{ padding: 13, marginBottom: 9 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <div style={{ fontSize: 19 }}>{sAva(s.id)}</div>
-            <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 700 }}>{s.name} <span style={{ fontSize: 10.5, fontWeight: 700, background: ft === "교재비" ? "#F0E7D9" : "#EFE7F0", color: ft === "교재비" ? "#8A5A2B" : "var(--plum)", borderRadius: 999, padding: "2px 8px", marginLeft: 2 }}>{ft}</span></div><div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>{p.month} · {won(p.amount)}</div></div>
+            <div style={{ fontSize: 19 }}>{sAva(p.studentId)}</div>
+            <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 700 }}>{s.name || "?"}</div><div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>{(p.items && p.items.length ? p.items.join(", ") : p.month)} · {won(p.amount)}</div></div>
             {ph === "done" ? <Tag bg="#E4F1EA" color="#3F8267">완료</Tag> : ph === "wip" ? <Tag bg="#F8EEDF" color="#B5683F">진행중</Tag> : <Tag bg="#FBE0DC" color="#C45A48">미시작</Tag>}
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>{labels.map((lb, i) => { const on = st[i]; const allowed = i === 0 ? canReq : canAdmin; const meta = [ck.s1, ck.s2, ck.s3][i]; return (
-            <button key={i} className="dc-btn" disabled={!allowed} onClick={() => toggle(p, i)} title={allowed ? "" : "원장만 체크할 수 있어요"} style={{ display: "flex", alignItems: "center", gap: 9, padding: "8px 11px", borderRadius: 11, background: on ? "#EEF6F1" : "#FBF6EC", border: "1px solid " + (on ? "#CDE6D8" : "var(--line)"), textAlign: "left", opacity: (allowed || on) ? 1 : .55 }}>
-              <div className={"dc-check" + (on ? " on" : "")} style={{ width: 19, height: 19, flexShrink: 0 }}>{on && <Check size={12} color="#fff" />}</div>
-              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 700, color: on ? "#3F8267" : "var(--ink)" }}>{i + 1}. {lb}</div>{on && meta && (meta.by || meta.at) && <div style={{ fontSize: 10.5, color: "var(--ink-soft)" }}>✓ {meta.by || ""}{meta.at ? ` · ${meta.at}` : ""}</div>}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>{labels.map((lb, i) => { const on = st[i]; const allowed = i === 0 ? canReq : canAdmin; const meta = [ck.s1, ck.s2][i]; return (
+            <button key={i} className="dc-btn" disabled={!allowed} onClick={() => toggle(p, i)} title={allowed ? "" : "원장만 체크할 수 있어요"} style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 11px", borderRadius: 11, background: on ? "#EEF6F1" : "#FBF6EC", border: "1px solid " + (on ? "#CDE6D8" : "var(--line)"), textAlign: "left", opacity: (allowed || on) ? 1 : .55 }}>
+              <div className={"dc-check" + (on ? " on" : "")} style={{ width: 20, height: 20, flexShrink: 0 }}>{on && <Check size={13} color="#fff" />}</div>
+              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 13, fontWeight: 700, color: on ? "#3F8267" : "var(--ink)" }}>{i + 1}. {lb}</div>{on && meta && (meta.by || meta.at) && <div style={{ fontSize: 10.5, color: "var(--ink-soft)" }}>✓ {meta.by || ""}{meta.at ? ` · ${meta.at}` : ""}</div>}</div>
             </button>
           ); })}</div>
           {p.payNote && <div style={{ fontSize: 11.5, color: "#8A5A2B", background: "#F8F1E6", borderRadius: 9, padding: "7px 10px", marginTop: 9 }}>📝 {p.payNote}</div>}
         </div>
       ); })}
-      <div style={{ fontSize: 11, color: "var(--ink-soft)", textAlign: "center", lineHeight: 1.6, marginTop: 6 }}>실제 결제 기능이 아니라 확인용 체크예요. 1단계는 강사·원장, 2·3단계는 원장만 체크할 수 있어요.</div>
+      <div style={{ fontSize: 11, color: "var(--ink-soft)", textAlign: "center", lineHeight: 1.6, marginTop: 6 }}>실제 결제 기능이 아니라 확인용 체크예요. ‘수납확인’은 강사·원장, ‘원장확인’은 원장만 체크할 수 있어요.</div>
+      </>)}
     </div>
   );
 }
@@ -1618,30 +1639,30 @@ function CollectSheet({ pay, student, onCollect, onClose }) {
     <button className="dc-btn" onClick={() => onCollect(method, note.trim())} style={{ width: "100%", padding: 14, borderRadius: 16, background: "linear-gradient(140deg,#6FAE93,#3F8267)", color: "#fff", fontSize: 14.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}><Check size={16} /> 수납 완료로 기록</button>
   </Sheet>);
 }
-function ChargeForm({ students, onCharge, onPaid, onClose }) {
-  const ITEMS = ["수강료", "교재비", "재료비", "특강비", "기타"];
+function ChargeForm({ students, onCharge, onClose }) {
+  const ITEMS = ["교재비", "재료비", "특강비", "기타"];
   const [sid, setSid] = useState(students[0]?.id); const [sq, setSq] = useState("");
-  const [item, setItem] = useState("교재비"); const [amount, setAmount] = useState(""); const [paidNow, setPaidNow] = useState(false); const [method, setMethod] = useState("현금"); const [note, setNote] = useState(""); const [book, setBook] = useState("");
+  const [item, setItem] = useState("교재비"); const [amount, setAmount] = useState(""); const [book, setBook] = useState("");
   const mon = `${new Date().getMonth() + 1}월`;
-  const showBook = item !== "수강료";
-  const title = showBook && book.trim() ? `${mon} ${item} (${book.trim()})` : `${mon} ${item}`;
+  const title = book.trim() ? `${mon} ${item} (${book.trim()})` : `${mon} ${item}`;
+  const monthKey = `2026년 ${mon} 교재비`;
   const fs = students.filter(s => !sq.trim() || s.name.includes(sq.trim()));
-  const submit = () => { if (!sid || !amount) return; const base = { studentId: sid, title, amount, items: showBook && book.trim() ? [`${item} · ${book.trim()}`] : [item] }; if (paidNow) onPaid({ ...base, method, note: note.trim() }); else onCharge(base); };
-  return (<Sheet title="수납 입력" onClose={onClose}>
+  const submit = () => { if (!sid || !amount) return; onCharge({ studentId: sid, title: monthKey, amount, items: book.trim() ? [`${item} — ${book.trim()}`] : [item], feeType: "교재비" }); };
+  return (<Sheet title="교재비 입력" onClose={onClose}>
     <label className="dc-label">학생</label>
     {students.length > 6 && <SearchBox value={sq} onChange={setSq} placeholder="학생 이름 검색" />}
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14, maxHeight: 120, overflowY: "auto" }}>{fs.length === 0 ? <div style={{ fontSize: 12.5, color: "var(--ink-soft)" }}>검색 결과가 없어요.</div> : fs.map(s => <button key={s.id} className="dc-btn" onClick={() => setSid(s.id)} style={{ padding: "8px 13px", borderRadius: 12, background: sid === s.id ? "#6A4C7A" : "#fff", color: sid === s.id ? "#fff" : "var(--ink)", border: "1px solid var(--line)", fontSize: 13 }}>{s.name}</button>)}</div>
     <label className="dc-label">항목</label>
     <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 14 }}>{ITEMS.map(it => <button key={it} className="dc-btn" onClick={() => setItem(it)} style={{ padding: "8px 14px", borderRadius: 999, background: item === it ? "#E07A55" : "#fff", color: item === it ? "#fff" : "var(--ink)", border: "1px solid var(--line)", fontSize: 12.5 }}>{it}</button>)}</div>
-    {showBook && <><label className="dc-label">교재명 / 내용 (선택)</label><input className="dc-input" value={book} onChange={e => setBook(e.target.value)} placeholder="예) 체르니30, 바이엘2, CCM코드반주1" style={{ marginBottom: 14 }} /></>}
+    <label className="dc-label">교재명 / 내용 (선택)</label>
+    <input className="dc-input" value={book} onChange={e => setBook(e.target.value)} placeholder="예) 체르니30, 바이엘2, CCM코드반주1" style={{ marginBottom: 14 }} />
     <label className="dc-label">금액 (원)</label>
-    <input type="number" className="dc-input" value={amount} min="0" step="1000" onChange={e => setAmount(e.target.value)} placeholder="예: 7000" style={{ marginBottom: 14 }} />
-    <button className="dc-btn" onClick={() => setPaidNow(v => !v)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "11px 13px", borderRadius: 13, background: paidNow ? "#E4F1EA" : "#F8F1E6", marginBottom: paidNow ? 12 : 18, border: "1px solid var(--line)" }}><div className={"dc-check" + (paidNow ? " on" : "")} style={{ width: 20, height: 20 }}>{paidNow && <Check size={13} color="#fff" />}</div><span style={{ fontSize: 13, fontWeight: 700, color: paidNow ? "#3F8267" : "var(--ink)" }}>바로 수납 완료로 등록 (오프라인 수령)</span></button>
-    {paidNow && <div style={{ marginBottom: 18 }}><label className="dc-label">결제수단</label><div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 12 }}>{PAY_METHODS.map(m => <button key={m} className="dc-btn" onClick={() => setMethod(m)} style={{ padding: "8px 14px", borderRadius: 12, background: method === m ? "#6A4C7A" : "#fff", color: method === m ? "#fff" : "var(--ink)", border: "1px solid var(--line)", fontSize: 12.5 }}>{m}</button>)}</div><label className="dc-label">메모 (이체자명·승인번호·지역화폐 등 · 선택)</label><textarea className="dc-input" value={note} onChange={e => setNote(e.target.value)} placeholder="예) 김OO 모 계좌이체, 지역화폐 승인 1234" style={{ minHeight: 52, resize: "none", marginBottom: 0 }} /></div>}
-    <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginBottom: 14 }}>{title} · {amount ? Number(amount).toLocaleString("ko-KR") + "원" : "금액 미입력"} · {paidNow ? `수납완료(${method})` : "청구(미납)"}</div>
-    <PrimaryBtn onClick={submit}><Check size={16} /> {paidNow ? "수납 완료 기록" : "청구 등록"}</PrimaryBtn>
+    <input type="number" className="dc-input" value={amount} min="0" step="1000" onChange={e => setAmount(e.target.value)} placeholder="예: 15000" style={{ marginBottom: 14 }} />
+    <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginBottom: 14, lineHeight: 1.6 }}>{title} · {amount ? Number(amount).toLocaleString("ko-KR") + "원" : "금액 미입력"}<br />등록 후 ‘수납 확인’에서 수납확인 → 원장확인 2단계로 처리해요.</div>
+    <PrimaryBtn onClick={submit}><Check size={16} /> 교재비 등록</PrimaryBtn>
   </Sheet>);
 }
+
 function RejectReason({ req, student, onReject, onClose }) {
   const [reason, setReason] = useState("");
   const QUICK = ["등록되지 않은 학생", "보호자 정보 불일치", "중복 요청"];
@@ -1694,12 +1715,12 @@ export default function App() {
     (async () => {
       if (isConfigured) {
         const remote = await loadState();
-        if (remote && Object.keys(remote).length) { lnJSON.current = JSON.stringify(remote); if (alive) setData(remote); }
+        if (remote && Object.keys(remote).length) { const cleaned = cleanLegacy(remote); lnJSON.current = JSON.stringify(remote); if (alive) setData(cleaned); }
         else { await saveState(SEED); lnJSON.current = JSON.stringify(SEED); }
         lnReady.current = true; return;
       }
       if (typeof window !== "undefined" && window.storage) {
-        try { const r = await window.storage.get("ln:data:v1", true); if (r && r.value) { lnJSON.current = r.value; if (alive) setData(JSON.parse(r.value)); lnReady.current = true; return; } } catch (e) { }
+        try { const r = await window.storage.get("ln:data:v1", true); if (r && r.value) { lnJSON.current = r.value; if (alive) setData(cleanLegacy(JSON.parse(r.value))); lnReady.current = true; return; } } catch (e) { }
         try { const j = JSON.stringify(SEED); await window.storage.set("ln:data:v1", j, true); lnJSON.current = j; } catch (e) { }
       }
       lnReady.current = true;
@@ -1826,8 +1847,8 @@ export default function App() {
     updateLesson: (id, patch) => D(d => { Object.assign(d.schedule.find(s => s.id === id), patch); return d; }),
     deleteLesson: (id) => D(d => { d.schedule = d.schedule.filter(s => s.id !== id); return d; }),
     payNow: (id) => D(d => { const p = d.payments.find(p => p.id === id); p.status = "done"; p.date = `${new Date().getMonth() + 1}월 ${new Date().getDate()}일 결제`; p.method = "신용카드 ****4821"; const stu = d.students.find(s => s.id === p.studentId); d.notifications.unshift({ id: uid("n"), academyId: stu && stu.academyId, aud: { kind: "admin" }, type: "pay", text: `💳 ${stu ? stu.name : ""} 수강료 납부 완료`, time: hhmm(), readBy: [] }); return d; }),
-    addCharge: ({ studentId, title, amount, items, feeType, by }) => D(d => { const at = `${new Date().getMonth() + 1}/${new Date().getDate()}`; d.payments.unshift({ id: uid("p"), studentId, month: title, amount: Number(amount) || 0, status: "pending", due: `${new Date().getMonth() + 1}월 말까지`, items: items && items.length ? items : [title], manual: true, feeType: feeType || "수강료", checks: { s1: { on: true, by: by || "", at } } }); const stu = d.students.find(s => s.id === studentId); d.notifications.unshift({ id: uid("n"), academyId: stu && stu.academyId, aud: { kind: "parentOf", studentId }, type: "pay", text: `🧾 새 청구 · ${title} ${(Number(amount) || 0).toLocaleString("ko-KR")}원`, time: hhmm(), readBy: [] }); return d; }),
-    toggleCheck: (id, stage, on, by) => D(d => { const p = (d.payments || []).find(p => p.id === id); if (!p) return d; if (!p.checks) p.checks = (p.status === "done" ? { s1: { on: true, by: "기존" }, s2: { on: true, by: "기존" }, s3: { on: true, by: "기존" } } : {}); p.checks[stage] = on ? { on: true, by: by || "", at: `${new Date().getMonth() + 1}/${new Date().getDate()}` } : { on: false }; const s3 = !!(p.checks.s3 && p.checks.s3.on); p.status = s3 ? "done" : "pending"; if (s3 && !p.date) p.date = `${new Date().getMonth() + 1}월 ${new Date().getDate()}일 확인`; if (!s3) p.date = null; return d; }),
+    addCharge: ({ studentId, title, amount, items, feeType, by }) => D(d => { d.payments.unshift({ id: uid("p"), studentId, month: title, amount: Number(amount) || 0, status: "pending", due: `${new Date().getMonth() + 1}월 말까지`, items: items && items.length ? items : [title], manual: true, feeType: feeType || "교재비", checks: {} }); const stu = d.students.find(s => s.id === studentId); d.notifications.unshift({ id: uid("n"), academyId: stu && stu.academyId, aud: { kind: "parentOf", studentId }, type: "pay", text: `🧾 새 청구 · ${title} ${(Number(amount) || 0).toLocaleString("ko-KR")}원`, time: hhmm(), readBy: [] }); return d; }),
+    toggleCheck: (id, stage, on, by) => D(d => { const p = (d.payments || []).find(p => p.id === id); if (!p) return d; if (!p.checks) p.checks = (p.status === "done" ? { s1: { on: true, by: "기존" }, s2: { on: true, by: "기존" } } : {}); p.checks[stage] = on ? { on: true, by: by || "", at: `${new Date().getMonth() + 1}/${new Date().getDate()}` } : { on: false }; const fin = !!(p.checks.s2 && p.checks.s2.on); p.status = fin ? "done" : "pending"; if (fin && !p.date) p.date = `${new Date().getMonth() + 1}월 ${new Date().getDate()}일 확인`; if (!fin) p.date = null; return d; }),
     addPaidRecord: ({ studentId, title, amount, method, items, note }) => D(d => { d.payments.unshift({ id: uid("p"), studentId, month: title, amount: Number(amount) || 0, status: "done", date: `${new Date().getMonth() + 1}월 ${new Date().getDate()}일 수납`, method, payNote: note || "", items: items && items.length ? items : [title], manual: true }); const stu = d.students.find(s => s.id === studentId); d.notifications.unshift({ id: uid("n"), academyId: stu && stu.academyId, aud: { kind: "parentOf", studentId }, type: "pay", text: `💳 ${title} 수납 완료 (${method})`, time: hhmm(), readBy: [] }); return d; }),
     markPaid: (id, method, note) => D(d => { const p = d.payments.find(p => p.id === id); if (!p) return d; p.status = "done"; p.date = `${new Date().getMonth() + 1}월 ${new Date().getDate()}일 수납`; p.method = method; if (note !== undefined) p.payNote = note; const stu = d.students.find(s => s.id === p.studentId); d.notifications.unshift({ id: uid("n"), academyId: stu && stu.academyId, aud: { kind: "parentOf", studentId: p.studentId }, type: "pay", text: `💳 ${p.month} 수납 완료 (${method})`, time: hhmm(), readBy: [] }); return d; }),
     confirmPay: (id, val) => D(d => { const p = d.payments.find(p => p.id === id); if (p) p.confirmed = val; return d; }),
