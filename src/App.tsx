@@ -57,8 +57,8 @@ const BY_LABEL = { parent: "학부모", teacher: "선생님", director: "원장�
 
 /* ---------------- seed (익명화 · 랩뮤직연세) ----------------
    · 학원: 랩뮤직연세 / 원장: 엄*수
-   · 강사 6명: A·B·C(피아노) · D(바이올린) · E(피아노) · F(바이올린)
-   · 학생 30명 — 실제 명단의 다양성(바이올린 유무·자녀수·수업횟수·요일·담당교사) 반영, 이름 전부 마스킹
+   · 강사 4명: A·B·C·E (모두 피아노)
+   · 학생 30명 — 실제 명단의 다양성(자녀수·수업횟수·요일·담당교사) 반영, 이름 전부 마스킹
    · 2자녀 가정 2곳(정*민→s1·s2 / 최*아→s3·s4)
    ------------------------------------------------------------ */
 const SEED = {
@@ -68,9 +68,7 @@ const SEED = {
     { id: "a_t1", role: "teacher", name: "A", email: "teacher1@demo.kr", password: "1234", academyId: "ac1", teacherId: "t1", verified: true },
     { id: "a_t2", role: "teacher", name: "B", email: "teacher2@demo.kr", password: "1234", academyId: "ac1", teacherId: "t2", verified: true },
     { id: "a_t3", role: "teacher", name: "C", email: "teacher3@demo.kr", password: "1234", academyId: "ac1", teacherId: "t3", verified: true },
-    { id: "a_t4", role: "teacher", name: "D", email: "teacher4@demo.kr", password: "1234", academyId: "ac1", teacherId: "t4", verified: true },
     { id: "a_t5", role: "teacher", name: "E", email: "teacher5@demo.kr", password: "1234", academyId: "ac1", teacherId: "t5", verified: true },
-    { id: "a_t6", role: "teacher", name: "F", email: "teacher6@demo.kr", password: "1234", academyId: "ac1", teacherId: "t6", verified: true },
     { id: "a_p1", role: "parent", name: "정*민", email: "parent1@demo.kr", password: "1234", academyId: "ac1", studentIds: ["s1", "s2"], verified: true },
     { id: "a_p2", role: "parent", name: "최*아", email: "parent2@demo.kr", password: "1234", academyId: "ac1", studentIds: ["s3", "s4"], verified: true },
     { id: "a_p3", role: "parent", name: "박*우", email: "parent3@demo.kr", password: "1234", academyId: "ac1", studentIds: ["s5"], verified: true },
@@ -89,23 +87,21 @@ const SEED = {
     { id: "t1", academyId: "ac1", name: "A", subject: "피아노", color: "#6A4C7A" },
     { id: "t2", academyId: "ac1", name: "B", subject: "피아노", color: "#E07A55" },
     { id: "t3", academyId: "ac1", name: "C", subject: "피아노", color: "#6FAE93" },
-    { id: "t4", academyId: "ac1", name: "D", subject: "바이올린", color: "#3F7CA8" },
     { id: "t5", academyId: "ac1", name: "E", subject: "피아노", color: "#C2548A" },
-    { id: "t6", academyId: "ac1", name: "F", subject: "바이올린", color: "#DBA254" },
   ],
   students: [
     { id: "s1", academyId: "ac1", name: "이*경", age: "7세", teacherId: "t1", days: 412, avatar: "🎀", pin: "7016" },
     { id: "s2", academyId: "ac1", name: "이*윤", age: "9세", teacherId: "t1", days: 230, avatar: "🎧", pin: "3925" },
     { id: "s3", academyId: "ac1", name: "최*린", age: "11세", teacherId: "t2", days: 540, avatar: "🌟", pin: "5840" },
-    { id: "s4", academyId: "ac1", name: "최*온", age: "8세", teacherId: "t4", days: 120, avatar: "🎻", pin: "4127" },
+    { id: "s4", academyId: "ac1", name: "최*온", age: "8세", teacherId: "t2", days: 120, avatar: "🎹", pin: "4127" },
     { id: "s5", academyId: "ac1", name: "김*준", age: "10세", teacherId: "t3", days: 310, avatar: "🎵", pin: "6398" },
     { id: "s6", academyId: "ac1", name: "정*나", age: "7세", teacherId: "t3", days: 95, avatar: "🌸", pin: "2051" },
-    { id: "s7", academyId: "ac1", name: "윤*아", age: "9세", teacherId: "t4", days: 200, avatar: "🎻", pin: "8264" },
+    { id: "s7", academyId: "ac1", name: "윤*아", age: "9세", teacherId: "t3", days: 200, avatar: "🎹", pin: "8264" },
     { id: "s8", academyId: "ac1", name: "강*현", age: "12세", teacherId: "t5", days: 480, avatar: "🎤", pin: "5719" },
     { id: "s9", academyId: "ac1", name: "조*재", age: "8세", teacherId: "t5", days: 60, avatar: "⭐", pin: "3402" },
-    { id: "s10", academyId: "ac1", name: "한*린", age: "10세", teacherId: "t6", days: 150, avatar: "🎼", pin: "9085" },
+    { id: "s10", academyId: "ac1", name: "한*린", age: "10세", teacherId: "t5", days: 150, avatar: "🎼", pin: "9085" },
     { id: "s11", academyId: "ac1", name: "박*서", age: "6세", teacherId: "t1", days: 40, avatar: "🐰", pin: "1186" },
-    { id: "s12", academyId: "ac1", name: "임*우", age: "13세", teacherId: "t6", days: 600, avatar: "🎈", pin: "7723" },
+    { id: "s12", academyId: "ac1", name: "임*우", age: "13세", teacherId: "t1", days: 600, avatar: "🎈", pin: "7723" },
   ],
   diary: [
     { id: "d1", studentId: "s1", teacherId: "t1", date: "6월 2일 (월)", title: "오늘은 체르니 16번을 끝냈어요! 🎉", text: "어려워하던 마지막 마디를 완벽하게 연주했어요. 손목 힘 빼는 연습이 큰 도움이 되었답니다.", media: [{ t: "photo", h: 0, e: "🎹" }, { t: "video", h: 1, e: "🎬" }, { t: "photo", h: 3, e: "🎼" }], likes: 2, liked: false, commentList: [{ aid: "a_par", by: "parent", name: "정*민", text: "우와 정말 잘했네요! 감사합니다 선생님 😊", time: "15:30", replies: [{ aid: "a_tea", by: "teacher", name: "A", text: "감사합니다 어머님! 다음 주도 화이팅이에요 🎵", time: "15:34" }] }] },
@@ -127,16 +123,16 @@ const SEED = {
     { id: "sc3", studentId: "s1", teacherId: "t2", day: "금", time: "17:00", dur: 50, kind: "이론·실기", room: "2관 이론실", att: "upcoming" },
     { id: "sc4", studentId: "s2", teacherId: "t1", day: "화", time: "15:30", dur: 30, kind: "피아노 정규", room: "1관 B실", att: "present" },
     { id: "sc5", studentId: "s2", teacherId: "t1", day: "목", time: "15:00", dur: 50, kind: "피아노 정규", room: "1관 B실", att: "upcoming" },
-    { id: "sc6", studentId: "s4", teacherId: "t4", day: "화", time: "16:00", dur: 30, kind: "바이올린 정규", room: "바이올린실", att: "present" },
+    { id: "sc6", studentId: "s4", teacherId: "t2", day: "화", time: "16:00", dur: 30, kind: "피아노 정규", room: "2관 B실", att: "present" },
     { id: "sc7", studentId: "s3", teacherId: "t2", day: "목", time: "17:00", dur: 50, kind: "피아노 정규", room: "1관 A실", att: "upcoming" },
   ],
   payments: [
-    { id: "p1", studentId: "s1", month: "2026년 6월 수강료", amount: 220000, status: "pending", due: "6월 5일까지", items: ["피아노 정규 (주 2회)", "이론·실기 (주 1회)", "교재비 — 체르니30"] },
+    { id: "p1", studentId: "s1", month: "2026년 6월 수강료", amount: 220000, status: "pending", due: "6월 5일까지", items: ["피아노 정규 (주 2회)", "이론·실기 (주 1회)", "교재비 — 체르니30"], feeType: "수강료", checks: { s1: { on: true, by: "원장", at: "6/1" } } },
     { id: "p2", studentId: "s1", month: "2026년 5월 수강료", amount: 220000, status: "done", date: "5월 4일 결제", method: "신용카드 ****4821" },
     { id: "p3", studentId: "s1", month: "2026년 4월 수강료", amount: 200000, status: "done", date: "4월 3일 결제", method: "계좌이체" },
-    { id: "p4", studentId: "s2", month: "2026년 6월 수강료", amount: 180000, status: "pending", due: "6월 5일까지", items: ["피아노 정규 (주 2회)", "교재비 — 바이엘 하권"] },
+    { id: "p4", studentId: "s2", month: "2026년 6월 수강료", amount: 180000, status: "pending", due: "6월 5일까지", items: ["피아노 정규 (주 2회)", "교재비 — 바이엘 하권"], feeType: "수강료", checks: { s1: { on: true, by: "원장", at: "6/1" }, s2: { on: true, by: "원장", at: "6/3" } } },
     { id: "p5", studentId: "s3", month: "2026년 6월 수강료", amount: 200000, status: "done", date: "6월 2일 결제", method: "신용카드 ****1130" },
-    { id: "p6", studentId: "s4", month: "2026년 6월 수강료", amount: 170000, status: "pending", due: "6월 10일까지", items: ["바이올린 정규 (주 1회)", "교재비 — 스즈키1"] },
+    { id: "p6", studentId: "s4", month: "2026년 6월 수강료", amount: 170000, status: "pending", due: "6월 10일까지", items: ["피아노 정규 (주 1회)", "교재비 — 바이엘 하권"] },
   ],
   chats: {
     "s1|tp": [{ by: "teacher", text: "안녕하세요 어머님 :) 오늘 수업 정말 잘했어요!", time: "15:02" }, { by: "parent", text: "선생님 감사합니다 🙏", time: "15:10" }, { by: "teacher", text: "다음 주부터 체르니 17번 들어갑니다!", time: "15:12" }],
@@ -174,8 +170,6 @@ const SEED = {
     { id: "c_mo", academyId: "ac1", name: "모차르트반", color: "#C2548A", type: "grid" },
     { id: "c_su", academyId: "ac1", name: "슈만반", color: "#DBA254", type: "grid" },
     { id: "c_ch", academyId: "ac1", name: "쇼팽반", color: "#3F7CA8", type: "grid" },
-    { id: "c_vn", academyId: "ac1", name: "바이올린", color: "#6FAE93", type: "list" },
-    { id: "c_mk", academyId: "ac1", name: "보강", color: "#8E6BB0", type: "list" },
   ],
   roster: [
     { id: "r1", academyId: "ac1", classId: "c_mo", day: "월", time: "13:30", name: "박*온", present: true, memo: "" },
@@ -188,42 +182,34 @@ const SEED = {
     { id: "r8", academyId: "ac1", classId: "c_su", day: "월", time: "14:30", name: "이*인", present: true, memo: "" },
     { id: "r9", academyId: "ac1", classId: "c_ch", day: "월", time: "15:00", name: "김*윤", present: true, memo: "발표회 곡 점검" },
     { id: "r10", academyId: "ac1", classId: "c_ch", day: "월", time: "15:30", name: "이*나", present: false, memo: "" },
-    { id: "v1", academyId: "ac1", classId: "c_vn", day: "월", time: "13:50", name: "최*온", studentId: "s4", present: false, memo: "" },
-    { id: "v2", academyId: "ac1", classId: "c_vn", day: "월", time: "14:20", name: "윤*아", studentId: "s7", present: false, memo: "" },
-    { id: "v3", academyId: "ac1", classId: "c_vn", day: "월", time: "14:40", name: "정*연", present: true, memo: "" },
-    { id: "v4", academyId: "ac1", classId: "c_vn", day: "월", time: "15:30", name: "김*인", present: false, memo: "3:10-3:50" },
-    { id: "v5", academyId: "ac1", classId: "c_vn", day: "월", time: "18:40", name: "김*후", present: true, memo: "체험" },
-    { id: "v6", academyId: "ac1", classId: "c_vn", day: "월", time: "19:10", name: "이*율", present: false, memo: "체험 · 결석" },
   ],
 };
 
 /* 익명 확장: 다양성 테스트용 학생 s13~s30 (총 30명)
-   — 바이올린 유무 · 수업횟수(주1~3회) · 요일 · 담당교사 · 수납상태 · 명단 배치를 분산 */
+   — 수업횟수(주1~3회) · 요일 · 담당교사 · 수납상태 · 명단 배치를 분산 */
 (function seedMore() {
   const SUR = ["김", "이", "박", "최", "정", "강", "조", "윤", "장", "임", "한", "오", "서", "신", "권", "황", "안", "남"];
   const LAST = ["우", "서", "윤", "아", "준", "현", "민", "호", "연", "율", "은", "진", "후", "원", "빈", "결", "하", "솔"];
   const AV = ["🎀", "🎧", "🌟", "🐰", "⭐", "🎈", "🌸", "🦊", "🎵", "🎼"];
   const PIANO = ["t1", "t2", "t3", "t5"];
-  const VIOLIN = ["t4", "t6"];
   const DAYS = ["월", "화", "수", "목", "금"];
-  const BOOKS = ["바이엘 하권", "체르니100", "체르니30", "스즈키1", "스즈키3", "하농", "부르크뮐러", "레파토리4"];
+  const BOOKS = ["바이엘 하권", "체르니100", "체르니30", "체르니40", "소나티네", "하농", "부르크뮐러", "레파토리4"];
   for (let i = 13; i <= 30; i++) {
     const sid = "s" + i;
-    const isViolin = i % 3 === 0;
-    const tid = isViolin ? VIOLIN[i % VIOLIN.length] : PIANO[i % PIANO.length];
+    const tid = PIANO[i % PIANO.length];
     const name = SUR[(i * 5) % SUR.length] + "*" + LAST[(i * 3) % LAST.length];
     SEED.students.push({ id: sid, academyId: "ac1", name, age: (6 + (i % 8)) + "세", teacherId: tid, days: 30 + ((i * 17) % 600), avatar: AV[i % AV.length], pin: String(1000 + ((i * 37) % 9000)) });
     const freq = 1 + (i % 3);
     for (let k = 0; k < freq; k++) {
       const day = DAYS[(i + k * 2) % DAYS.length];
       const time = SLOTS[(i + k) % SLOTS.length] || "16:00";
-      SEED.schedule.push({ id: uid("sc"), studentId: sid, teacherId: tid, day, time, dur: [30, 50, 60][i % 3], kind: isViolin ? "바이올린 정규" : "피아노 정규", room: isViolin ? "바이올린실" : ((i % 3) + 1) + "관", att: "upcoming" });
+      SEED.schedule.push({ id: uid("sc"), studentId: sid, teacherId: tid, day, time, dur: [30, 50, 60][i % 3], kind: "피아노 정규", room: ((i % 3) + 1) + "관", att: "upcoming" });
     }
     const amount = 150000 + (i % 5) * 20000;
     SEED.payments.push((i % 4) === 0
-      ? { id: "p" + sid, studentId: sid, month: "2026년 6월 수강료", amount, status: "pending", due: "6월 10일까지", items: [(isViolin ? "바이올린" : "피아노") + " 정규 (주 " + freq + "회)", "교재비 — " + BOOKS[i % BOOKS.length]] }
+      ? { id: "p" + sid, studentId: sid, month: "2026년 6월 수강료", amount, status: "pending", due: "6월 10일까지", items: ["피아노 정규 (주 " + freq + "회)", "교재비 — " + BOOKS[i % BOOKS.length]] }
       : { id: "p" + sid, studentId: sid, month: "2026년 6월 수강료", amount, status: "done", date: "6월 4일 결제", method: "신용카드 ****" + (1000 + (i % 9000)) });
-    const cls = isViolin ? "c_vn" : ["c_mo", "c_su", "c_ch"][i % 3];
+    const cls = ["c_mo", "c_su", "c_ch"][i % 3];
     SEED.roster.push({ id: uid("r"), academyId: "ac1", classId: cls, day: DAYS[i % DAYS.length], time: SLOTS[(i * 2) % SLOTS.length] || "14:00", name, studentId: sid, present: (i % 2) === 0, memo: "" });
   }
 })();
@@ -1011,7 +997,7 @@ function ScheduleView({ data, student, canEdit, academyTeachers, me, api }) {
       {addCtx && <LessonForm title="수업 추가" teachers={academyTeachers} days={days} students={data.students.filter(s => s.academyId === student.academyId && (addCtx.teacherId ? s.teacherId === addCtx.teacherId : true))} open={academy.open || "13:00"} close={academy.close || "19:00"} lessons={data.schedule} initial={{ day: addCtx.day, start: addCtx.start, teacherId: addCtx.teacherId }} onSave={(l) => { api.addLesson({ ...l, id: uid("sc"), studentId: l.studentId || student.id }); setAddCtx(null); }} onClose={() => setAddCtx(null)} />}
       {editLesson && <LessonForm title="수업 이동·수정" teachers={academyTeachers} days={days} open={academy.open || "13:00"} close={academy.close || "19:00"} lessons={data.schedule} initial={editLesson} onSave={(l) => { api.updateLesson(editLesson.id, l); setEditLesson(null); }} onClose={() => setEditLesson(null)} />}
       {composeCtx && composeCtx.student && <ComposeDiary student={composeCtx.student} defaultTeacherId={composeCtx.teacherId} initialTitle="오늘의 레슨" initialText={composeCtx.text} onSave={(e) => { api.addDiary(e); setComposeCtx(null); }} onClose={() => setComposeCtx(null)} />}
-      {rosterAdd && <RosterAdd students={data.students.filter(s => s.academyId === student.academyId)} fixedTime={(classes.find(c => c.id === rosterAdd.classId) || {}).type === "list" ? "" : rosterAdd.time} onSave={(name, time, sid) => { api.addRoster({ academyId: student.academyId, classId: rosterAdd.classId, day: namesDay, time: time || rosterAdd.time, name, studentId: sid }); setRosterAdd(null); }} onClose={() => setRosterAdd(null)} />}
+      {rosterAdd && <RosterAdd students={data.students.filter(s => s.academyId === student.academyId)} fixedTime={(classes.find(c => c.id === rosterAdd.classId) || {}).type === "list" ? "" : rosterAdd.time} onSave={(name, time, sid, makeup) => { api.addRoster({ academyId: student.academyId, classId: rosterAdd.classId, day: namesDay, time: time || rosterAdd.time, name, studentId: sid, makeup }); setRosterAdd(null); }} onClose={() => setRosterAdd(null)} />}
       {rosterEdit && <RosterEdit entry={rosterEdit} onSave={(patch) => { api.updateRoster(rosterEdit.id, patch); setRosterEdit(null); }} onDelete={() => { const id = rosterEdit.id; api.confirm({ title: "명단에서 삭제할까요?", message: rosterEdit.name, onConfirm: () => api.deleteRoster(id) }); setRosterEdit(null); }} onClose={() => setRosterEdit(null)} />}
       {kiosk && <KioskOverlay data={data} academy={academy} students={data.students.filter(s => scopeIds.has(s.id) && data.schedule.some(l => l.studentId === s.id && l.day === today))} allStudents={data.students.filter(s => s.academyId === student.academyId)} api={api} tName={tName} onClose={() => setKiosk(false)} />}
     </div>
@@ -1020,13 +1006,13 @@ function ScheduleView({ data, student, canEdit, academyTeachers, me, api }) {
 function ClassForm({ initial, onSave, onClose }) {
   const [name, setName] = useState(initial?.name || ""); const [type, setType] = useState(initial?.type || "grid");
   return (<Sheet title={initial ? "반 정보 수정" : "반 추가"} onClose={onClose}>
-    <Field label="반 이름" value={name} onChange={setName} placeholder="예) 모차르트반 / 바이올린" />
+    <Field label="반 이름" value={name} onChange={setName} placeholder="예) 모차르트반 / 개인레슨" />
     <label className="dc-label">명단 유형</label>
     <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
       <button className="dc-btn" onClick={() => setType("grid")} style={{ flex: 1, padding: "11px 0", borderRadius: 12, background: type === "grid" ? "#6A4C7A" : "#fff", color: type === "grid" ? "#fff" : "var(--ink)", border: "1px solid var(--line)", fontSize: 13, fontWeight: type === "grid" ? 700 : 400 }}>반(30분 격자)</button>
       <button className="dc-btn" onClick={() => setType("list")} style={{ flex: 1, padding: "11px 0", borderRadius: 12, background: type === "list" ? "#6A4C7A" : "#fff", color: type === "list" ? "#fff" : "var(--ink)", border: "1px solid var(--line)", fontSize: 13, fontWeight: type === "list" ? 700 : 400 }}>개인(시간 자유)</button>
     </div>
-    <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginBottom: 18, lineHeight: 1.6 }}>{type === "grid" ? "피아노 그룹처럼 30분 격자에 학생을 넣는 방식이에요." : "바이올린 개인레슨처럼 1:50, 2:45 등 시간을 자유롭게 적는 목록이에요."}</div>
+    <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginBottom: 18, lineHeight: 1.6 }}>{type === "grid" ? "피아노 그룹처럼 30분 격자에 학생을 넣는 방식이에요." : "피아노 개인레슨처럼 1:50, 2:45 등 시간을 자유롭게 적는 목록이에요."}</div>
     <PrimaryBtn onClick={() => name.trim() && onSave(name.trim(), type)}><Check size={16} /> {initial ? "저장" : "추가"}</PrimaryBtn>
   </Sheet>);
 }
@@ -1055,12 +1041,13 @@ function AssignClass({ cls, students, onAssign, onClose }) {
   </Sheet>);
 }
 function RosterAdd({ students, fixedTime, onSave, onClose }) {
-  const [sq, setSq] = useState(""); const [custom, setCustom] = useState(""); const [time, setTime] = useState(fixedTime || "");
+  const [sq, setSq] = useState(""); const [custom, setCustom] = useState(""); const [time, setTime] = useState(fixedTime || ""); const [makeup, setMakeup] = useState(false);
   const fs = sq.trim() ? students.filter(s => s.name.includes(sq.trim())) : students.slice(0, 8);
   const needTime = !fixedTime;
-  const go = (name, sid) => { if (needTime && !time.trim()) return; onSave(name, needTime ? time.trim() : fixedTime, sid || null); };
+  const go = (name, sid) => { if (needTime && !time.trim()) return; onSave(name, needTime ? time.trim() : fixedTime, sid || null, makeup); };
   return (<Sheet title="학생 추가" onClose={onClose}>
     {needTime && <><label className="dc-label">시간 (자유 입력 · 예 1:50, 14:20)</label><input className="dc-input" value={time} onChange={e => setTime(e.target.value)} placeholder="예) 2:45" style={{ marginBottom: 14 }} /></>}
+    <button className="dc-btn" onClick={() => setMakeup(v => !v)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 13px", borderRadius: 12, background: makeup ? "#F1E7F6" : "#F8F1E6", marginBottom: 12, border: "1px solid var(--line)" }}><div className={"dc-check" + (makeup ? " on" : "")} style={{ width: 19, height: 19 }}>{makeup && <Check size={12} color="#fff" />}</div><span style={{ fontSize: 12.5, fontWeight: 700, color: makeup ? "var(--plum-deep)" : "var(--ink)" }}>이 학생은 보강이에요 (명단에 ‘보강’ 표시)</span></button>
     <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginBottom: 12 }}>등록된 학생을 누르면 <b style={{ color: "var(--plum)" }}>고유번호(PIN)</b>가 연결돼 키오스크 출석과 연동돼요. 이름 직접 입력은 연동되지 않아요.</div>
     <SearchBox value={sq} onChange={setSq} placeholder="학생 이름 검색" />
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16, maxHeight: 150, overflowY: "auto" }}>{fs.length === 0 ? <div style={{ fontSize: 12.5, color: "var(--ink-soft)" }}>검색 결과가 없어요.</div> : fs.map(s => <button key={s.id} className="dc-btn" onClick={() => go(s.name, s.id)} style={{ padding: "9px 14px", borderRadius: 12, background: "#fff", color: "var(--ink)", border: "1px solid var(--line)", fontSize: 13.5 }}>{s.name} <span style={{ opacity: .55, fontSize: 11 }}>#{s.pin}</span></button>)}</div>
@@ -1303,10 +1290,9 @@ function Thread({ title, color, msgs, myBy, myId, onBack, onSend, onEdit, schedu
    5a. 결제
    ============================================================ */
 function PaymentView({ data, student, api }) {
-  const [done, setDone] = useState(false); const [receipt, setReceipt] = useState(null); const won = n => n.toLocaleString("ko-KR") + "원";
+  const [receipt, setReceipt] = useState(null); const won = n => n.toLocaleString("ko-KR") + "원";
   const mine = data.payments.filter(p => p.studentId === student.id); const pending = mine.find(p => p.status === "pending"); const history = mine.filter(p => p.status === "done");
   const paidThisYear = history.filter(h => (h.month || "").includes(String(new Date().getFullYear())));
-  const pay = () => { setDone(true); setTimeout(() => { api.payNow(pending.id); setDone(false); }, 1100); };
   return (
     <div>
       <ViewTitle icon={<CreditCard size={15} />} kr="결제" en="Payment" sub={`${student.name} 수강료 결제 및 내역`} />
@@ -1314,7 +1300,7 @@ function PaymentView({ data, student, api }) {
         <div className="dc-card" style={{ flex: 1, padding: "13px 0", textAlign: "center" }}><div className="dc-fr" style={{ fontSize: 20, fontWeight: 600, color: pending ? "#E07A55" : "#6FAE93" }}>{pending ? "미납 1건" : "납부 완료"}</div><div style={{ fontSize: 11, color: "var(--ink-soft)" }}>이번 달 상태</div></div>
         <div className="dc-card" style={{ flex: 1, padding: "13px 0", textAlign: "center" }}><div className="dc-fr" style={{ fontSize: 20, fontWeight: 600, color: "var(--plum)" }}>{paidThisYear.length}건</div><div style={{ fontSize: 11, color: "var(--ink-soft)" }}>올해 납부 횟수</div></div>
       </div>
-      {pending ? (<div className="dc-card dc-enter" style={{ padding: 18, marginBottom: 16, background: "linear-gradient(150deg,#E07A55,#DBA254)", color: "#fff", border: "none", position: "relative", overflow: "hidden" }}><div style={{ position: "absolute", right: -30, top: -30, width: 130, height: 130, borderRadius: "50%", background: "rgba(255,255,255,.14)" }} /><Tag bg="rgba(255,255,255,.25)" color="#fff">납부 예정</Tag><div className="dc-serif" style={{ fontSize: 16, fontWeight: 700, marginTop: 10 }}>{pending.month}</div><div className="dc-fr" style={{ fontSize: 34, fontWeight: 600, margin: "2px 0 4px" }}>{won(pending.amount)}</div><div style={{ fontSize: 12.5, opacity: .9, display: "flex", alignItems: "center", gap: 5 }}><Clock size={13} /> 납부 기한 {pending.due}</div><div style={{ background: "rgba(255,255,255,.16)", borderRadius: 14, padding: 12, margin: "14px 0", fontSize: 12.5, lineHeight: 1.9 }}>{(pending.items || []).map((it, i) => <div key={i} style={{ opacity: .9 }}>· {it}</div>)}</div><button className="dc-btn" onClick={pay} disabled={done} style={{ width: "100%", padding: 15, borderRadius: 16, background: done ? "rgba(255,255,255,.4)" : "#fff", color: done ? "#fff" : "#E07A55", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>{done ? "처리 중…" : <><CreditCard size={18} /> 결제하기</>}</button></div>) : (<div className="dc-card dc-enter" style={{ padding: 22, marginBottom: 16, textAlign: "center", background: "linear-gradient(150deg,#6FAE93,#3F8267)", color: "#fff", border: "none" }}><div style={{ width: 56, height: 56, borderRadius: 20, background: "rgba(255,255,255,.22)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}><Check size={30} /></div><div className="dc-serif" style={{ fontSize: 17, fontWeight: 700 }}>이번 달 수강료 납부 완료!</div><div style={{ fontSize: 12.5, opacity: .9, marginTop: 4 }}>다음 결제 예정일은 7월 5일이에요.</div></div>)}
+      {pending ? (<div className="dc-card dc-enter" style={{ padding: 18, marginBottom: 16, background: "linear-gradient(150deg,#E07A55,#DBA254)", color: "#fff", border: "none", position: "relative", overflow: "hidden" }}><div style={{ position: "absolute", right: -30, top: -30, width: 130, height: 130, borderRadius: "50%", background: "rgba(255,255,255,.14)" }} /><Tag bg="rgba(255,255,255,.25)" color="#fff">납부 예정</Tag><div className="dc-serif" style={{ fontSize: 16, fontWeight: 700, marginTop: 10 }}>{pending.month}</div><div className="dc-fr" style={{ fontSize: 34, fontWeight: 600, margin: "2px 0 4px" }}>{won(pending.amount)}</div><div style={{ fontSize: 12.5, opacity: .9, display: "flex", alignItems: "center", gap: 5 }}><Clock size={13} /> 납부 기한 {pending.due}</div><div style={{ background: "rgba(255,255,255,.16)", borderRadius: 14, padding: 12, margin: "14px 0", fontSize: 12.5, lineHeight: 1.9 }}>{(pending.items || []).map((it, i) => <div key={i} style={{ opacity: .9 }}>· {it}</div>)}</div><div style={{ width: "100%", padding: "12px 14px", borderRadius: 16, background: "rgba(255,255,255,.18)", fontSize: 12.5, lineHeight: 1.65 }}><b>납부 안내</b> · 원장님께 직접 납부해 주세요.<br />확인이 완료되면 자동으로 ‘납부 완료’로 표시돼요.</div></div>) : (<div className="dc-card dc-enter" style={{ padding: 22, marginBottom: 16, textAlign: "center", background: "linear-gradient(150deg,#6FAE93,#3F8267)", color: "#fff", border: "none" }}><div style={{ width: 56, height: 56, borderRadius: 20, background: "rgba(255,255,255,.22)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}><Check size={30} /></div><div className="dc-serif" style={{ fontSize: 17, fontWeight: 700 }}>이번 달 수강료 납부 완료!</div><div style={{ fontSize: 12.5, opacity: .9, marginTop: 4 }}>다음 결제 예정일은 7월 5일이에요.</div></div>)}
       <div className="dc-section-tt" style={{ margin: "4px 4px 12px" }}><Receipt size={14} /> 결제 내역</div>
       {history.length === 0 && <Empty msg="아직 결제 내역이 없어요." />}
       {history.map(h => (<button key={h.id} className="dc-card dc-btn" onClick={() => setReceipt(h)} style={{ width: "100%", padding: 15, marginBottom: 11, display: "flex", alignItems: "center", gap: 13, textAlign: "left" }}><div style={{ width: 42, height: 42, borderRadius: 14, background: "#F0E7D9", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--plum)" }}><Receipt size={19} /></div><div style={{ flex: 1 }}><div style={{ fontSize: 13.5, fontWeight: 700 }}>{h.month}</div><div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>{h.date} · {h.method}</div></div><div style={{ textAlign: "right" }}><div className="dc-fr" style={{ fontSize: 15, fontWeight: 600 }}>{won(h.amount)}</div><Tag bg="#E4F1EA" color="#3F8267">영수증</Tag></div></button>))}
@@ -1442,7 +1428,7 @@ function ManageView({ data, me, academy, student, api, setActiveStudent, setTab,
       </div>
       <div className="dc-card dc-enter" style={{ padding: 16, marginBottom: 14 }}>
         <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}><div className="dc-section-tt" style={{ flex: 1 }}><CreditCard size={14} /> 이번 달 수납 현황</div><button className="dc-btn" onClick={() => setCollectOpen(true)} style={{ background: "#EFE7F0", color: "var(--plum)", borderRadius: 10, padding: "6px 11px", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 4, marginRight: 6 }}><Receipt size={13} /> 수납확인</button><button className="dc-btn" onClick={() => setEdit({ type: "charge" })} style={{ background: "linear-gradient(140deg,#6A4C7A,#4D3759)", color: "#fff", borderRadius: 10, padding: "7px 12px", fontSize: 12.5, fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}><Plus size={14} /> 수납 입력</button></div>
-        {unpaidList.length === 0 ? <Empty msg="미납 학생이 없어요. 모두 완료! 🎉" /> : (<>{unpaidList.slice(0, 12).map(s => { const p = junePay(s.id); return (<div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: "1px solid var(--line)" }}><div style={{ fontSize: 18 }}>{s.avatar}</div><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 13.5, fontWeight: 700 }}>{s.name}</div><div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{p.month} · {won(p.amount)}</div></div><button className="dc-btn" onClick={() => setEdit({ type: "collect", payload: p })} style={{ background: "#E4F1EA", color: "#3F8267", borderRadius: 9, padding: "7px 11px", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}><Check size={13} /> 수납완료</button></div>); })}{unpaidList.length > 12 && <div style={{ fontSize: 12, color: "var(--ink-soft)", textAlign: "center", paddingTop: 10 }}>외 {unpaidList.length - 12}명 미납</div>}</>)}
+        {unpaidList.length === 0 ? <Empty msg="미납 학생이 없어요. 모두 완료! 🎉" /> : (<>{unpaidList.slice(0, 12).map(s => { const p = junePay(s.id); return (<div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: "1px solid var(--line)" }}><div style={{ fontSize: 18 }}>{s.avatar}</div><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 13.5, fontWeight: 700 }}>{s.name}</div><div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{p.month} · {won(p.amount)}</div></div><button className="dc-btn" onClick={() => setCollectOpen(true)} style={{ background: "#EFE7F0", color: "var(--plum)", borderRadius: 9, padding: "7px 11px", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}><Receipt size={13} /> 확인</button></div>); })}{unpaidList.length > 12 && <div style={{ fontSize: 12, color: "var(--ink-soft)", textAlign: "center", paddingTop: 10 }}>외 {unpaidList.length - 12}명 미납</div>}</>)}
       </div>
       <LogoutCard me={me} academy={academy} onLogout={onLogout} />
       {edit?.type === "academy" && <EditAcademy academy={academy} onSave={(v) => { api.saveAcademy(academy.id, v); setEdit(null); }} onClose={() => setEdit(null)} />}
@@ -1462,6 +1448,9 @@ function InfoRow({ label, value, onEdit }) { return (<div style={{ display: "fle
 const PAY_METHODS = ["현금", "계좌이체", "카드", "지역화폐", "기타"];
 function MakeupView({ data, academy, students, api, onBack }) {
   const makeups = (data.makeups || []).filter(m => m.academyId === academy.id);
+  const gridClasses = (data.classes || []).filter(c => c.academyId === academy.id && c.type === "grid");
+  const mkOpen = toMin(academy.open || "13:00"); const mkClose = Math.max(mkOpen + 60, toMin(academy.close || "19:00"));
+  const mkSlots = Array.from({ length: Math.max(1, Math.ceil((mkClose - mkOpen) / 30)) }, (_, i) => `${Math.floor((mkOpen + i * 30) / 60)}:${String((mkOpen + i * 30) % 60).padStart(2, "0")}`);
   const [edit, setEdit] = useState(null); const [adding, setAdding] = useState(false); const [tab, setTab] = useState("pending");
   const pending = makeups.filter(m => !m.done); const done = makeups.filter(m => m.done);
   const shown = tab === "pending" ? pending : done;
@@ -1483,16 +1472,16 @@ function MakeupView({ data, academy, students, api, onBack }) {
           </div>
         </div>
       ))}
-      {(adding || edit) && <MakeupForm item={edit} students={students} onSave={(v) => { if (edit) api.updateMakeup(edit.id, v); else api.addMakeup({ ...v, academyId: academy.id }); setEdit(null); setAdding(false); }} onAddToRoster={({ name, day, time }) => { const mk = (data.classes || []).find(c => c.academyId === academy.id && c.name === "보강"); api.addRoster({ academyId: academy.id, classId: mk ? mk.id : "c_mk", day, time, name, makeup: true }); api.confirm({ title: "명단에 보강을 넣었어요", message: `${day} ${time} · ${name} (보강)`, confirmText: "확인" }); }} onDelete={edit ? () => { const id = edit.id; api.confirm({ title: "삭제할까요?", message: edit.name, onConfirm: () => api.deleteMakeup(id) }); setEdit(null); } : null} onClose={() => { setEdit(null); setAdding(false); }} />}
+      {(adding || edit) && <MakeupForm item={edit} students={students} gridClasses={gridClasses} slots={mkSlots} onSave={(v) => { if (edit) api.updateMakeup(edit.id, v); else api.addMakeup({ ...v, academyId: academy.id }); setEdit(null); setAdding(false); }} onAddToRoster={({ name, day, time, classId }) => { api.addRoster({ academyId: academy.id, classId, day, time, name, makeup: true }); const cls = gridClasses.find(c => c.id === classId); api.confirm({ title: "명단에 보강을 넣었어요", message: `${cls ? cls.name + " · " : ""}${day} ${time} · ${name} (보강)`, confirmText: "확인" }); }} onDelete={edit ? () => { const id = edit.id; api.confirm({ title: "삭제할까요?", message: edit.name, onConfirm: () => api.deleteMakeup(id) }); setEdit(null); } : null} onClose={() => { setEdit(null); setAdding(false); }} />}
     </div>
   );
 }
-function MakeupForm({ item, students, onSave, onDelete, onAddToRoster, onClose }) {
+function MakeupForm({ item, students, gridClasses = [], slots = [], onSave, onDelete, onAddToRoster, onClose }) {
   const [name, setName] = useState(item?.name || ""); const [sq, setSq] = useState(""); const [absentDate, setAbsent] = useState(item?.absentDate || ""); const [reason, setReason] = useState(item?.reason || ""); const [makeupDate, setMakeup] = useState(item?.makeupDate || ""); const [done, setDone] = useState(!!item?.done);
-  const [mkDay, setMkDay] = useState(item?.mkDay || ""); const [mkTime, setMkTime] = useState(item?.mkTime || "");
+  const [mkDay, setMkDay] = useState(item?.mkDay || ""); const [mkTime, setMkTime] = useState(item?.mkTime || ""); const [mkClass, setMkClass] = useState(item?.mkClass || (gridClasses[0]?.id || ""));
   const REASONS = ["병결", "여행", "공휴일", "독감", "당일병결", "기타"]; const DAYS = ["월", "화", "수", "목", "금", "토"];
   const fs = sq.trim() ? students.filter(s => s.name.includes(sq.trim())) : [];
-  const save = () => name.trim() && onSave({ name: name.trim(), absentDate: absentDate.trim(), reason, makeupDate: makeupDate.trim(), done, mkDay, mkTime: mkTime.trim() });
+  const save = () => name.trim() && onSave({ name: name.trim(), absentDate: absentDate.trim(), reason, makeupDate: makeupDate.trim(), done, mkDay, mkTime: mkTime.trim(), mkClass });
   return (<Sheet title={item ? "결석·보강 정보" : "결석·보강 추가"} onClose={onClose}>
     <Field label="이름" value={name} onChange={setName} placeholder="학생 이름" />
     {!item && <><SearchBox value={sq} onChange={setSq} placeholder="등록 학생에서 찾기(선택)" />{fs.length > 0 && <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 12 }}>{fs.slice(0, 8).map(s => <button key={s.id} className="dc-btn" onClick={() => { setName(s.name); setSq(""); }} style={{ padding: "7px 12px", borderRadius: 11, background: "#fff", border: "1px solid var(--line)", fontSize: 13 }}>{s.name}</button>)}</div>}</>}
@@ -1501,13 +1490,15 @@ function MakeupForm({ item, students, onSave, onDelete, onAddToRoster, onClose }
     <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 14 }}>{REASONS.map(r => <button key={r} className="dc-btn" onClick={() => setReason(r)} style={{ padding: "8px 13px", borderRadius: 999, background: reason === r ? "#E07A55" : "#fff", color: reason === r ? "#fff" : "var(--ink)", border: "1px solid var(--line)", fontSize: 12.5 }}>{r}</button>)}</div>
     <Field label="보강 메모 / 처리" value={makeupDate} onChange={setMakeup} placeholder="예) 3회 차감, 환불, 한달 휴원" />
     <div style={{ background: "#F6EEFA", borderRadius: 14, padding: 13, marginBottom: 16, border: "1px solid #E4D3EE" }}>
-      <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--plum-deep)", marginBottom: 9 }}>📅 보강 일정 잡기 (명단 반영용)</div>
+      <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--plum-deep)", marginBottom: 9 }}>📅 정규 반에 보강 넣기 (명단 반영용)</div>
+      <label className="dc-label">반 선택</label>
+      {gridClasses.length === 0 ? <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginBottom: 10 }}>먼저 ‘반(30분 격자)’을 만들어주세요.</div> : <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>{gridClasses.map(c => <button key={c.id} className="dc-btn" onClick={() => setMkClass(c.id)} style={{ padding: "7px 13px", borderRadius: 11, background: mkClass === c.id ? c.color : "#fff", color: mkClass === c.id ? "#fff" : "var(--ink)", border: "1px solid var(--line)", fontSize: 12.5, fontWeight: mkClass === c.id ? 700 : 400 }}>{c.name}</button>)}</div>}
       <label className="dc-label">요일</label>
       <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>{DAYS.map(d => <button key={d} className="dc-btn" onClick={() => setMkDay(d)} style={{ flex: 1, padding: "8px 0", borderRadius: 10, background: mkDay === d ? "#8E6BB0" : "#fff", color: mkDay === d ? "#fff" : "var(--ink)", border: "1px solid var(--line)", fontSize: 12.5, fontWeight: mkDay === d ? 700 : 400 }}>{d}</button>)}</div>
-      <label className="dc-label">시간 (학생 시간표 보고 빈 시간에)</label>
-      <input className="dc-input" value={mkTime} onChange={e => setMkTime(e.target.value)} placeholder="예) 5:00, 17:30" style={{ marginBottom: 10 }} />
-      {onAddToRoster && <button className="dc-btn" onClick={() => { if (!name.trim() || !mkDay || !mkTime.trim()) return; onAddToRoster({ name: name.trim(), day: mkDay, time: mkTime.trim() }); }} style={{ width: "100%", padding: 11, borderRadius: 12, background: "#8E6BB0", color: "#fff", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Plus size={15} /> 명단에 보강 넣기 (일회성)</button>}
-      <div style={{ fontSize: 10.5, color: "var(--ink-soft)", marginTop: 7, lineHeight: 1.5 }}>‘보강’ 반의 해당 요일·시간에 일회성으로 추가돼요. 정규 시간표는 바뀌지 않아요.</div>
+      <label className="dc-label">시간 (빈 슬롯에 배치)</label>
+      <select className="dc-input" value={mkTime} onChange={e => setMkTime(e.target.value)} style={{ marginBottom: 10, appearance: "auto" }}><option value="">시간 선택</option>{slots.map(t => <option key={t} value={t}>{t}</option>)}</select>
+      {onAddToRoster && <button className="dc-btn" onClick={() => { if (!name.trim() || !mkClass || !mkDay || !mkTime.trim()) return; onAddToRoster({ name: name.trim(), day: mkDay, time: mkTime.trim(), classId: mkClass }); }} style={{ width: "100%", padding: 11, borderRadius: 12, background: "#8E6BB0", color: "#fff", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Plus size={15} /> 명단에 보강 넣기 (일회성)</button>}
+      <div style={{ fontSize: 10.5, color: "var(--ink-soft)", marginTop: 7, lineHeight: 1.5 }}>선택한 반의 해당 요일·시간 칸에 일회성으로 들어가고 ‘보강’ 표시가 붙어요. 정규 수업 시간표(블록)는 바뀌지 않아요.</div>
     </div>
     <button className="dc-btn" onClick={() => setDone(v => !v)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "11px 13px", borderRadius: 13, background: done ? "#E4F1EA" : "#F8F1E6", marginBottom: 18, border: "1px solid var(--line)" }}><div className={"dc-check" + (done ? " on" : "")} style={{ width: 20, height: 20 }}>{done && <Check size={13} color="#fff" />}</div><span style={{ fontSize: 13.5, fontWeight: 700, color: done ? "#3F8267" : "var(--ink)" }}>{done ? "보강 완료" : "보강 대기"}</span></button>
     <div style={{ display: "flex", gap: 8 }}>
@@ -1558,69 +1549,64 @@ function LeadForm({ lead, onSave, onDelete, onClose }) {
     </div>
   </Sheet>);
 }
+const FEE_STAGES = {
+  "수강료": ["납부 요청 확인", "원장 수납 확인", "최종 확인"],
+  "교재비": ["강사 요청 확인", "원장 연락 완료", "수납 완료 확인"],
+};
 function CollectView({ data, academy, students, api, me, onBack }) {
-  const canConfirm = me.role === "admin";
   const won = n => (n || 0).toLocaleString("ko-KR") + "원";
+  const canReq = me.role === "teacher" || me.role === "admin";
+  const canAdmin = me.role === "admin";
   const sids = new Set(students.map(s => s.id));
   const months = Array.from(new Set(data.payments.filter(p => sids.has(p.studentId)).map(p => p.month))).sort().reverse();
   const curMon = `${new Date().getMonth() + 1}월`;
-  const [mon, setMon] = useState(months.includes(curMon) ? curMon : (months[0] || curMon));
-  const [mf, setMf] = useState("all"); const [collect, setCollect] = useState(null); const [cq, setCq] = useState("");
-  const sName = id => (students.find(s => s.id === id) || {}).name || "?";
+  const [mon, setMon] = useState(months.find(m => m.includes(curMon)) || months[0] || curMon);
+  const [mf, setMf] = useState("all"); const [cq, setCq] = useState("");
   const sAva = id => (students.find(s => s.id === id) || {}).avatar || "🎵";
+  const ckOf = (p) => p.checks || (p.status === "done" ? { s1: { on: true, by: "기존" }, s2: { on: true, by: "기존" }, s3: { on: true, by: "기존" } } : {});
+  const stageState = (p) => { const c = ckOf(p); return [c.s1, c.s2, c.s3].map(x => !!(x && x.on)); };
+  const phaseOf = (p) => { const [a, b, cc] = stageState(p); return cc ? "done" : (a || b) ? "wip" : "todo"; };
   const rows = students.map(s => ({ s, p: data.payments.find(p => p.studentId === s.id && p.month === mon) })).filter(x => x.p);
-  const methodOf = (p) => p.status !== "done" ? null : (!p.manual ? "온라인" : (PAY_METHODS.find(m => (p.method || "").includes(m)) || "기타"));
-  const MBADGE = { "온라인": ["#E6EEF7", "#3F7CA8"], "카드": ["#E6EEF7", "#3F7CA8"], "현금": ["#E4F1EA", "#3F8267"], "계좌이체": ["#F0E7D9", "#8A5A2B"], "지역화폐": ["#EFE7F0", "#6A4C7A"], "기타": ["#EFE9E0", "#6B6357"] };
-  const paidRows = rows.filter(x => x.p.status === "done");
-  const total = rows.length, paid = paidRows.length, unpaid = total - paid, confirmed = rows.filter(x => x.p.confirmed).length;
-  const sumByMethod = {}; paidRows.forEach(x => { const m = methodOf(x.p); sumByMethod[m] = (sumByMethod[m] || 0) + (x.p.amount || 0); });
-  const paidSum = paidRows.reduce((a, x) => a + (x.p.amount || 0), 0);
-  const unpaidRows = rows.filter(x => x.p.status !== "done");
-  const unpaidSum = unpaidRows.reduce((a, x) => a + (x.p.amount || 0), 0);
+  const total = rows.length;
+  const doneN = rows.filter(x => phaseOf(x.p) === "done").length;
+  const wipN = rows.filter(x => phaseOf(x.p) === "wip").length;
+  const todoN = total - doneN - wipN;
   let shown = rows;
-  if (mf === "unpaid") shown = rows.filter(x => x.p.status !== "done");
-  else if (mf === "unconfirmed") shown = rows.filter(x => x.p.status === "done" && !x.p.confirmed);
-  else if (mf !== "all") shown = rows.filter(x => methodOf(x.p) === mf);
+  if (mf === "todo") shown = rows.filter(x => phaseOf(x.p) !== "done");
+  else if (mf === "done") shown = rows.filter(x => phaseOf(x.p) === "done");
+  else if (mf === "수강료" || mf === "교재비") shown = rows.filter(x => (x.p.feeType || "수강료") === mf);
   if (cq.trim()) shown = shown.filter(x => x.s.name.includes(cq.trim()));
-  const FILTERS = [["all", "전체"], ["unpaid", "미납"], ["unconfirmed", "미확인"], ["현금", "현금"], ["계좌이체", "계좌이체"], ["지역화폐", "지역화폐"], ["온라인", "온라인"]];
+  const FILTERS = [["all", "전체"], ["todo", "미완료"], ["done", "완료"], ["수강료", "수강료"], ["교재비", "교재비"]];
+  const toggle = (p, idx) => { const allowed = idx === 0 ? canReq : canAdmin; if (!allowed) return; const stage = ["s1", "s2", "s3"][idx]; const cur = stageState(p)[idx]; api.toggleCheck(p.id, stage, !cur, me.role === "admin" ? "원장" : (me.name || "강사")); };
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}><button className="dc-btn" onClick={onBack} style={{ background: "#F0E7D9", borderRadius: 11, padding: 9 }}><ChevronLeft size={18} color="var(--plum)" /></button><div><div className="dc-serif" style={{ fontSize: 18, fontWeight: 700 }}>수납 확인</div><div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>현장·이체·지역화폐까지 한 번에 이중확인</div></div></div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}><button className="dc-btn" onClick={onBack} style={{ background: "#F0E7D9", borderRadius: 11, padding: 9 }}><ChevronLeft size={18} color="var(--plum)" /></button><div><div className="dc-serif" style={{ fontSize: 18, fontWeight: 700 }}>수납 확인</div><div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>요청 → 원장 확인 → 완료까지 3단계로 누가·언제 확인했는지 기록</div></div></div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}><CalendarDays size={15} color="var(--plum)" /><select className="dc-input" value={mon} onChange={e => setMon(e.target.value)} style={{ flex: 1, marginBottom: 0, appearance: "auto", fontWeight: 700, color: "var(--plum-deep)" }}>{(months.length ? months : [curMon]).map(m => <option key={m} value={m}>{m}</option>)}</select></div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        {[["완납", paid, "#3F8267"], ["미납", unpaid, "#C45A48"], ["원장확인", `${confirmed}/${total}`, "#6A4C7A"]].map(([l, n, c]) => <div key={l} className="dc-card" style={{ flex: 1, padding: "11px 0", textAlign: "center" }}><div className="dc-fr" style={{ fontSize: 19, fontWeight: 600, color: c }}>{n}</div><div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{l}</div></div>)}
-      </div>
-      {Object.keys(sumByMethod).length > 0 && <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>{Object.entries(sumByMethod).map(([m, v]) => <span key={m} style={{ fontSize: 11.5, background: (MBADGE[m] || MBADGE["기타"])[0], color: (MBADGE[m] || MBADGE["기타"])[1], borderRadius: 999, padding: "5px 11px", fontWeight: 700 }}>{m} {won(v)}</span>)}</div>}
-      <div className="dc-card" style={{ padding: "12px 14px", marginBottom: 12, display: "flex", gap: 10 }}>
-        <div style={{ flex: 1 }}><div style={{ fontSize: 11, color: "var(--ink-soft)" }}>수납 완료액</div><div className="dc-fr" style={{ fontSize: 17, fontWeight: 700, color: "#3F8267" }}>{won(paidSum)}</div></div>
-        <div style={{ width: 1, background: "var(--line)" }} />
-        <div style={{ flex: 1 }}><div style={{ fontSize: 11, color: "var(--ink-soft)" }}>미납액</div><div className="dc-fr" style={{ fontSize: 17, fontWeight: 700, color: "#C45A48" }}>{won(unpaidSum)}</div></div>
-      </div>
-      {unpaidRows.length > 0 && <button className="dc-btn" onClick={() => api.confirm({ title: `미납 ${unpaidRows.length}명에게 독촉 알림`, message: `${mon} 미납 학부모 ${unpaidRows.length}명에게 수납 안내 알림을 보낼까요?`, onConfirm: () => api.remindUnpaid(unpaidRows.map(x => x.p.id)) })} style={{ width: "100%", padding: 12, borderRadius: 13, background: "#FBE0DC", color: "#C45A48", fontSize: 13.5, fontWeight: 700, marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Bell size={15} /> 미납 {unpaidRows.length}명에게 일괄 독촉 알림</button>}
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>{[["완료", doneN, "#3F8267"], ["진행중", wipN, "#B5683F"], ["미시작", todoN, "#C45A48"]].map(([l, n, c]) => <div key={l} className="dc-card" style={{ flex: 1, padding: "11px 0", textAlign: "center" }}><div className="dc-fr" style={{ fontSize: 19, fontWeight: 600, color: c }}>{n}<span style={{ fontSize: 11, color: "var(--ink-soft)" }}>/{total}</span></div><div style={{ fontSize: 11, color: "var(--ink-soft)" }}>{l}</div></div>)}</div>
       <SearchBox value={cq} onChange={setCq} placeholder="학생 이름으로 찾기" />
       <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, marginBottom: 12 }}>{FILTERS.map(([k, l]) => <button key={k} className="dc-btn" onClick={() => setMf(k)} style={{ flexShrink: 0, padding: "7px 13px", borderRadius: 999, fontSize: 12, fontWeight: mf === k ? 700 : 400, background: mf === k ? "#6A4C7A" : "#fff", color: mf === k ? "#fff" : "var(--ink)", border: "1px solid var(--line)" }}>{l}</button>)}</div>
-      {(cq.trim() || mf !== "all") && <div style={{ fontSize: 12, color: "var(--ink-soft)", margin: "0 4px 10px" }}>{shown.length}명 표시 중{cq.trim() ? ` · ‘${cq.trim()}’` : ""}</div>}
-      {shown.length === 0 ? <Empty msg="해당 조건의 수납 내역이 없어요." /> : shown.map(({ s, p }) => { const m = methodOf(p); const done = p.status === "done"; return (
-        <div key={s.id} className="dc-card" style={{ padding: 13, marginBottom: 9 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      {(cq.trim() || mf !== "all") && <div style={{ fontSize: 12, color: "var(--ink-soft)", margin: "0 4px 10px" }}>{shown.length}건 표시 중</div>}
+      {shown.length === 0 ? <Empty msg="해당 조건의 항목이 없어요." /> : shown.map(({ s, p }) => { const ft = p.feeType || "수강료"; const labels = FEE_STAGES[ft] || FEE_STAGES["수강료"]; const st = stageState(p); const ck = ckOf(p); const ph = phaseOf(p); return (
+        <div key={p.id} className="dc-card" style={{ padding: 13, marginBottom: 9 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
             <div style={{ fontSize: 19 }}>{sAva(s.id)}</div>
-            <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 700 }}>{s.name}</div><div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>{p.month} · {won(p.amount)}</div></div>
-            {done ? <Tag bg="#E4F1EA" color="#3F8267">완납</Tag> : <Tag bg="#FBE0DC" color="#C45A48">미납</Tag>}
-            {done && m && <span style={{ fontSize: 11, fontWeight: 700, background: (MBADGE[m] || MBADGE["기타"])[0], color: (MBADGE[m] || MBADGE["기타"])[1], borderRadius: 999, padding: "3px 9px" }}>{m}</span>}
+            <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 700 }}>{s.name} <span style={{ fontSize: 10.5, fontWeight: 700, background: ft === "교재비" ? "#F0E7D9" : "#EFE7F0", color: ft === "교재비" ? "#8A5A2B" : "var(--plum)", borderRadius: 999, padding: "2px 8px", marginLeft: 2 }}>{ft}</span></div><div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>{p.month} · {won(p.amount)}</div></div>
+            {ph === "done" ? <Tag bg="#E4F1EA" color="#3F8267">완료</Tag> : ph === "wip" ? <Tag bg="#F8EEDF" color="#B5683F">진행중</Tag> : <Tag bg="#FBE0DC" color="#C45A48">미시작</Tag>}
           </div>
-          <div style={{ display: "flex", gap: 8, marginTop: 11 }}>
-            {done
-              ? <button className="dc-btn" onClick={() => api.reopenPay(p.id)} style={{ flex: 1, padding: 10, borderRadius: 11, background: "#F8F1E6", color: "var(--ink-soft)", fontSize: 12.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}><RotateCcw size={14} /> 미납으로</button>
-              : <button className="dc-btn" onClick={() => setCollect(p)} style={{ flex: 1, padding: 10, borderRadius: 11, background: "#E4F1EA", color: "#3F8267", fontSize: 12.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}><Check size={14} /> 수납완료</button>}
-            <button className="dc-btn" disabled={!canConfirm} onClick={() => canConfirm && api.confirmPay(p.id, !p.confirmed)} title={canConfirm ? "" : "원장만 최종 확인할 수 있어요"} style={{ flex: 1, padding: 10, borderRadius: 11, background: p.confirmed ? "linear-gradient(140deg,#6A4C7A,#4D3759)" : "#fff", color: p.confirmed ? "#fff" : (canConfirm ? "var(--plum)" : "#B6ABBC"), border: "1px solid " + (p.confirmed ? "transparent" : "var(--line)"), fontSize: 12.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, opacity: canConfirm || p.confirmed ? 1 : .7 }}>{p.confirmed ? <Check size={14} /> : <Shield size={14} />} 원장확인{p.confirmed ? "✓" : ""}</button>
-          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>{labels.map((lb, i) => { const on = st[i]; const allowed = i === 0 ? canReq : canAdmin; const meta = [ck.s1, ck.s2, ck.s3][i]; return (
+            <button key={i} className="dc-btn" disabled={!allowed} onClick={() => toggle(p, i)} title={allowed ? "" : "원장만 체크할 수 있어요"} style={{ display: "flex", alignItems: "center", gap: 9, padding: "8px 11px", borderRadius: 11, background: on ? "#EEF6F1" : "#FBF6EC", border: "1px solid " + (on ? "#CDE6D8" : "var(--line)"), textAlign: "left", opacity: (allowed || on) ? 1 : .55 }}>
+              <div className={"dc-check" + (on ? " on" : "")} style={{ width: 19, height: 19, flexShrink: 0 }}>{on && <Check size={12} color="#fff" />}</div>
+              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 12.5, fontWeight: 700, color: on ? "#3F8267" : "var(--ink)" }}>{i + 1}. {lb}</div>{on && meta && (meta.by || meta.at) && <div style={{ fontSize: 10.5, color: "var(--ink-soft)" }}>✓ {meta.by || ""}{meta.at ? ` · ${meta.at}` : ""}</div>}</div>
+            </button>
+          ); })}</div>
           {p.payNote && <div style={{ fontSize: 11.5, color: "#8A5A2B", background: "#F8F1E6", borderRadius: 9, padding: "7px 10px", marginTop: 9 }}>📝 {p.payNote}</div>}
         </div>
       ); })}
-      {collect && <CollectSheet pay={collect} student={students.find(s => s.id === collect.studentId)} onCollect={(method, note) => { api.markPaid(collect.id, method, note); setCollect(null); }} onClose={() => setCollect(null)} />}
+      <div style={{ fontSize: 11, color: "var(--ink-soft)", textAlign: "center", lineHeight: 1.6, marginTop: 6 }}>실제 결제 기능이 아니라 확인용 체크예요. 1단계는 강사·원장, 2·3단계는 원장만 체크할 수 있어요.</div>
     </div>
   );
 }
+
 function CollectSheet({ pay, student, onCollect, onClose }) {
   const [method, setMethod] = useState("현금"); const [note, setNote] = useState(pay.payNote || "");
   return (<Sheet title="수납 완료 처리" onClose={onClose}>
@@ -1840,7 +1826,8 @@ export default function App() {
     updateLesson: (id, patch) => D(d => { Object.assign(d.schedule.find(s => s.id === id), patch); return d; }),
     deleteLesson: (id) => D(d => { d.schedule = d.schedule.filter(s => s.id !== id); return d; }),
     payNow: (id) => D(d => { const p = d.payments.find(p => p.id === id); p.status = "done"; p.date = `${new Date().getMonth() + 1}월 ${new Date().getDate()}일 결제`; p.method = "신용카드 ****4821"; const stu = d.students.find(s => s.id === p.studentId); d.notifications.unshift({ id: uid("n"), academyId: stu && stu.academyId, aud: { kind: "admin" }, type: "pay", text: `💳 ${stu ? stu.name : ""} 수강료 납부 완료`, time: hhmm(), readBy: [] }); return d; }),
-    addCharge: ({ studentId, title, amount, items }) => D(d => { d.payments.unshift({ id: uid("p"), studentId, month: title, amount: Number(amount) || 0, status: "pending", due: `${new Date().getMonth() + 1}월 말까지`, items: items && items.length ? items : [title], manual: true }); const stu = d.students.find(s => s.id === studentId); d.notifications.unshift({ id: uid("n"), academyId: stu && stu.academyId, aud: { kind: "parentOf", studentId }, type: "pay", text: `🧾 새 청구 · ${title} ${(Number(amount) || 0).toLocaleString("ko-KR")}원`, time: hhmm(), readBy: [] }); return d; }),
+    addCharge: ({ studentId, title, amount, items, feeType, by }) => D(d => { const at = `${new Date().getMonth() + 1}/${new Date().getDate()}`; d.payments.unshift({ id: uid("p"), studentId, month: title, amount: Number(amount) || 0, status: "pending", due: `${new Date().getMonth() + 1}월 말까지`, items: items && items.length ? items : [title], manual: true, feeType: feeType || "수강료", checks: { s1: { on: true, by: by || "", at } } }); const stu = d.students.find(s => s.id === studentId); d.notifications.unshift({ id: uid("n"), academyId: stu && stu.academyId, aud: { kind: "parentOf", studentId }, type: "pay", text: `🧾 새 청구 · ${title} ${(Number(amount) || 0).toLocaleString("ko-KR")}원`, time: hhmm(), readBy: [] }); return d; }),
+    toggleCheck: (id, stage, on, by) => D(d => { const p = (d.payments || []).find(p => p.id === id); if (!p) return d; if (!p.checks) p.checks = (p.status === "done" ? { s1: { on: true, by: "기존" }, s2: { on: true, by: "기존" }, s3: { on: true, by: "기존" } } : {}); p.checks[stage] = on ? { on: true, by: by || "", at: `${new Date().getMonth() + 1}/${new Date().getDate()}` } : { on: false }; const s3 = !!(p.checks.s3 && p.checks.s3.on); p.status = s3 ? "done" : "pending"; if (s3 && !p.date) p.date = `${new Date().getMonth() + 1}월 ${new Date().getDate()}일 확인`; if (!s3) p.date = null; return d; }),
     addPaidRecord: ({ studentId, title, amount, method, items, note }) => D(d => { d.payments.unshift({ id: uid("p"), studentId, month: title, amount: Number(amount) || 0, status: "done", date: `${new Date().getMonth() + 1}월 ${new Date().getDate()}일 수납`, method, payNote: note || "", items: items && items.length ? items : [title], manual: true }); const stu = d.students.find(s => s.id === studentId); d.notifications.unshift({ id: uid("n"), academyId: stu && stu.academyId, aud: { kind: "parentOf", studentId }, type: "pay", text: `💳 ${title} 수납 완료 (${method})`, time: hhmm(), readBy: [] }); return d; }),
     markPaid: (id, method, note) => D(d => { const p = d.payments.find(p => p.id === id); if (!p) return d; p.status = "done"; p.date = `${new Date().getMonth() + 1}월 ${new Date().getDate()}일 수납`; p.method = method; if (note !== undefined) p.payNote = note; const stu = d.students.find(s => s.id === p.studentId); d.notifications.unshift({ id: uid("n"), academyId: stu && stu.academyId, aud: { kind: "parentOf", studentId: p.studentId }, type: "pay", text: `💳 ${p.month} 수납 완료 (${method})`, time: hhmm(), readBy: [] }); return d; }),
     confirmPay: (id, val) => D(d => { const p = d.payments.find(p => p.id === id); if (p) p.confirmed = val; return d; }),
